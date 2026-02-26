@@ -27,7 +27,11 @@ async function startServer() {
     // Development: use Vite as middleware
     const { createServer } = await import("vite");
     const vite = await createServer({
-      server: { middlewareMode: true },
+      configFile: path.resolve(__dirname, "..", "vite.config.ts"),
+      server: {
+        middlewareMode: true,
+        hmr: { server: undefined },
+      },
       appType: "spa",
     });
     app.use(vite.middlewares);
