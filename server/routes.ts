@@ -10,6 +10,8 @@ import { createGithubRoutes } from "./routes/github";
 import { createUserPreferencesRoutes } from "./routes/user-preferences";
 import { createHealthRoutes } from "./routes/health";
 import { createAuditRoutes } from "./routes/audit";
+import { createAuthRoutes } from "./routes/auth";
+import { createNotificationRoutes } from "./routes/notifications";
 import { errorHandler } from "./middleware/error-handler";
 
 export function registerRoutes(app: Express, db: NodePgDatabase) {
@@ -20,6 +22,9 @@ export function registerRoutes(app: Express, db: NodePgDatabase) {
 
   // ── API Routes ─────────────────────────────────────
   // IMPORTANT: Register all API routes BEFORE the SPA catch-all
+
+  // Auth — no auth required on these routes (they handle their own)
+  app.use("/api/auth", createAuthRoutes(db));
 
   // Health check — no auth
   app.use("/api/health", createHealthRoutes(db, cacheService));
@@ -47,6 +52,9 @@ export function registerRoutes(app: Express, db: NodePgDatabase) {
 
   // Audit log
   app.use("/api/audit", createAuditRoutes(auditService));
+
+  // Notifications (requires auth)
+  app.use("/api/notifications", createNotificationRoutes(db));
 
   // ── Error Handler ──────────────────────────────────
   app.use(errorHandler);

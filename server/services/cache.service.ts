@@ -18,7 +18,7 @@ export class CacheService {
     endpoint: string,
     params: Record<string, string | undefined>,
   ): string {
-    const owner = process.env.GITHUB_OWNER || "53947";
+    const owner = process.env.GITHUB_OWNER || "triadblue";
     switch (endpoint) {
       case "repos":
         return `repos:${owner}`;

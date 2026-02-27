@@ -1,8 +1,10 @@
 import express from "express";
+import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
 import path from "path";
 import { fileURLToPath } from "url";
 import { registerRoutes } from "./routes";
-import { db } from "./db/index";
+import { db, pool } from "./db/index";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -11,6 +13,27 @@ const PORT = parseInt(process.env.PORT || "5000", 10);
 // Body parsing
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+
+// Session middleware (PostgreSQL-backed)
+const PgStore = connectPgSimple(session);
+app.use(
+  session({
+    store: new PgStore({
+      pool,
+      tableName: "session",
+      createTableIfMissing: true,
+    }),
+    secret: process.env.SESSION_SECRET || "consoleblue-dev-secret-change-me",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours default
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    },
+  }),
+);
 
 // Register all API routes (before static files / vite)
 registerRoutes(app, db);

@@ -116,7 +116,7 @@ export default function ProjectDetailPage() {
                 )}
                 {project.githubRepo && (
                   <a
-                    href={`https://github.com/${project.githubOwner || "53947"}/${project.githubRepo}`}
+                    href={`https://github.com/${project.githubOwner || "triadblue"}/${project.githubRepo}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 hover:text-gray-600"

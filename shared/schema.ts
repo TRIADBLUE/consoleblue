@@ -153,10 +153,95 @@ export const auditLog = pgTable("audit_log", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// ── Admin Users ───────────────────────────────────────
+
+export const adminUsers = pgTable("admin_users", {
+  id: serial("id").primaryKey(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  displayName: varchar("display_name", { length: 200 }),
+  role: varchar("role", { length: 50 }).notNull().default("admin"),
+  isActive: boolean("is_active").notNull().default(true),
+  accountLocked: boolean("account_locked").notNull().default(false),
+  failedLoginAttempts: integer("failed_login_attempts").notNull().default(0),
+  lastFailedLogin: timestamp("last_failed_login"),
+  lockedUntil: timestamp("locked_until"),
+  lastLogin: timestamp("last_login"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ── Admin Sessions ────────────────────────────────────
+
+export const adminSessions = pgTable("admin_sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .references(() => adminUsers.id, { onDelete: "cascade" })
+    .notNull(),
+  sessionToken: text("session_token").notNull().unique(),
+  ipAddress: varchar("ip_address", { length: 100 }),
+  userAgent: text("user_agent"),
+  expiresAt: timestamp("expires_at").notNull(),
+  lastActivity: timestamp("last_activity").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ── Password Reset Tokens ─────────────────────────────
+
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .references(() => adminUsers.id, { onDelete: "cascade" })
+    .notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ── Notifications ─────────────────────────────────────
+
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .references(() => adminUsers.id, { onDelete: "cascade" })
+    .notNull(),
+  type: varchar("type", { length: 50 }).notNull(),
+  title: varchar("title", { length: 500 }).notNull(),
+  message: text("message").notNull(),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+  projectId: integer("project_id").references(() => projects.id, {
+    onDelete: "set null",
+  }),
+  read: boolean("read").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ── Notification Preferences ──────────────────────────
+
+export const notificationPreferences = pgTable(
+  "notification_preferences",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+      .references(() => adminUsers.id, { onDelete: "cascade" })
+      .notNull(),
+    type: varchar("type", { length: 50 }).notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("notification_prefs_user_type_idx").on(
+      table.userId,
+      table.type,
+    ),
+  ],
+);
+
 // ── Relations ──────────────────────────────────────────
 
 export const projectsRelations = relations(projects, ({ many }) => ({
   settings: many(projectSettings),
+  notifications: many(notifications),
 }));
 
 export const projectSettingsRelations = relations(
@@ -165,6 +250,40 @@ export const projectSettingsRelations = relations(
     project: one(projects, {
       fields: [projectSettings.projectId],
       references: [projects.id],
+    }),
+  }),
+);
+
+export const adminUsersRelations = relations(adminUsers, ({ many }) => ({
+  sessions: many(adminSessions),
+  notifications: many(notifications),
+  notificationPreferences: many(notificationPreferences),
+}));
+
+export const adminSessionsRelations = relations(adminSessions, ({ one }) => ({
+  user: one(adminUsers, {
+    fields: [adminSessions.userId],
+    references: [adminUsers.id],
+  }),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(adminUsers, {
+    fields: [notifications.userId],
+    references: [adminUsers.id],
+  }),
+  project: one(projects, {
+    fields: [notifications.projectId],
+    references: [projects.id],
+  }),
+}));
+
+export const notificationPreferencesRelations = relations(
+  notificationPreferences,
+  ({ one }) => ({
+    user: one(adminUsers, {
+      fields: [notificationPreferences.userId],
+      references: [adminUsers.id],
     }),
   }),
 );

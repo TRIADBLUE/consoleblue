@@ -40,7 +40,7 @@ export function githubCacheMiddleware(
     res.json = ((data: unknown) => {
       // Cache the response asynchronously (don't block the response)
       if (res.statusCode >= 200 && res.statusCode < 300) {
-        const owner = process.env.GITHUB_OWNER || "53947";
+        const owner = process.env.GITHUB_OWNER || "triadblue";
         cacheService
           .set(cacheKey, endpoint, {
             owner,

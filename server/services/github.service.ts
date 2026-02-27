@@ -12,7 +12,7 @@ class GitHubService {
       );
     }
     this.octokit = new Octokit({ auth: token });
-    this.owner = process.env.GITHUB_OWNER || "53947";
+    this.owner = process.env.GITHUB_OWNER || "triadblue";
   }
 
   get ownerName() {
