@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { SafeImage } from "@/components/ui/safe-image";
 import { useCreateProject, useUpdateProject } from "@/hooks/use-projects";
 import type { Project, ProjectStatus } from "@shared/types";
 
@@ -29,6 +30,8 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
     displayName: project?.displayName || "",
     description: project?.description || "",
     githubRepo: project?.githubRepo || "",
+    iconUrl: project?.iconUrl || "",
+    iconEmoji: project?.iconEmoji || "",
     status: (project?.status || "active") as ProjectStatus,
     subdomainUrl: project?.subdomainUrl || "",
     productionUrl: project?.productionUrl || "",
@@ -57,6 +60,8 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
       displayName: form.displayName,
       description: form.description || undefined,
       githubRepo: form.githubRepo || undefined,
+      iconUrl: form.iconUrl || undefined,
+      iconEmoji: form.iconEmoji || undefined,
       status: form.status,
       subdomainUrl: form.subdomainUrl || undefined,
       productionUrl: form.productionUrl || undefined,
@@ -136,6 +141,40 @@ export function ProjectForm({ project, onSuccess }: ProjectFormProps) {
           onChange={(e) => updateField("githubRepo", e.target.value)}
           placeholder="repo-name"
         />
+      </div>
+
+      {/* Project Icon */}
+      <div className="space-y-1">
+        <Label>Project Icon</Label>
+        <div className="flex items-center gap-3">
+          {(form.iconUrl || form.iconEmoji) && (
+            <div className="shrink-0">
+              {form.iconUrl ? (
+                <SafeImage
+                  src={form.iconUrl}
+                  alt="Icon preview"
+                  className="w-12 h-12 rounded-lg object-contain border"
+                  fallbackInitials={form.displayName.slice(0, 2)}
+                  fallbackColor="#0000FF"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-lg border flex items-center justify-center text-2xl">
+                  {form.iconEmoji}
+                </div>
+              )}
+            </div>
+          )}
+          <div className="flex-1 space-y-2">
+            <Input
+              value={form.iconUrl}
+              onChange={(e) => updateField("iconUrl", e.target.value)}
+              placeholder="https://example.com/icon.png or /assets/brands/slug/icon.png"
+            />
+            <p className="text-xs text-muted-foreground">
+              Image URL for this project's icon. Used on cards, detail pages, and exports.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Status */}
