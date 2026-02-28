@@ -8,6 +8,7 @@ import ProjectDetailPage from "@/pages/ProjectDetailPage";
 import ProjectGitHubPage from "@/pages/ProjectGitHubPage";
 import AuditLogPage from "@/pages/AuditLogPage";
 import SettingsPage from "@/pages/SettingsPage";
+import SharedDocsPage from "@/pages/SharedDocsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -75,6 +76,9 @@ function AppRouter() {
       </Route>
       <Route path="/projects/:slug/github">
         <ProtectedRoute component={ProjectGitHubPage} />
+      </Route>
+      <Route path="/docs">
+        <ProtectedRoute component={SharedDocsPage} />
       </Route>
       <Route path="/audit">
         <ProtectedRoute component={AuditLogPage} />

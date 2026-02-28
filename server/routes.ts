@@ -12,6 +12,9 @@ import { createHealthRoutes } from "./routes/health";
 import { createAuditRoutes } from "./routes/audit";
 import { createAuthRoutes } from "./routes/auth";
 import { createNotificationRoutes } from "./routes/notifications";
+import { createSharedDocRoutes } from "./routes/shared-docs";
+import { createProjectDocRoutes } from "./routes/project-docs";
+import { createDocPushRoutes } from "./routes/doc-push";
 import { errorHandler } from "./middleware/error-handler";
 
 export function registerRoutes(app: Express, db: NodePgDatabase) {
@@ -55,6 +58,21 @@ export function registerRoutes(app: Express, db: NodePgDatabase) {
 
   // Notifications (requires auth)
   app.use("/api/notifications", createNotificationRoutes(db));
+
+  // Shared docs (global docs included in every CLAUDE.md push)
+  app.use("/api/docs/shared", createSharedDocRoutes(db, auditService));
+
+  // Per-project docs (nested under projects)
+  app.use(
+    "/api/projects/:idOrSlug/docs",
+    createProjectDocRoutes(db, auditService),
+  );
+
+  // Doc push (preview, push to GitHub, history)
+  app.use(
+    "/api/projects/:idOrSlug/docs/push",
+    createDocPushRoutes(db, auditService),
+  );
 
   // ── Error Handler ──────────────────────────────────
   app.use(errorHandler);

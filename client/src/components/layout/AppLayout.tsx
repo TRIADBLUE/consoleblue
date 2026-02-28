@@ -10,6 +10,7 @@ interface AppLayoutProps {
 
 const NAV_ITEMS = [
   { label: "Projects", href: "/" },
+  { label: "Docs", href: "/docs" },
   { label: "Audit Log", href: "/audit" },
   { label: "Settings", href: "/settings" },
 ];
@@ -47,7 +48,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   const isActive =
                     item.href === "/"
                       ? location === "/" || location.startsWith("/projects")
-                      : location.startsWith(item.href);
+                      : location === item.href || location.startsWith(item.href + "/");
                   return (
                     <Link key={item.href} href={item.href}>
                       <span

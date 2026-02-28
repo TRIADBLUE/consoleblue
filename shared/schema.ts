@@ -237,11 +237,63 @@ export const notificationPreferences = pgTable(
   ],
 );
 
+// ── Shared Docs ──────────────────────────────────────
+
+export const sharedDocs = pgTable("shared_docs", {
+  id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 100 }).notNull().unique(),
+  title: varchar("title", { length: 200 }).notNull(),
+  content: text("content").notNull().default(""),
+  displayOrder: integer("display_order").default(0).notNull(),
+  enabled: boolean("enabled").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ── Project Docs ─────────────────────────────────────
+
+export const projectDocs = pgTable("project_docs", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id")
+    .references(() => projects.id, { onDelete: "cascade" })
+    .notNull(),
+  slug: varchar("slug", { length: 100 }).notNull(),
+  title: varchar("title", { length: 200 }).notNull(),
+  content: text("content").notNull().default(""),
+  displayOrder: integer("display_order").default(0).notNull(),
+  enabled: boolean("enabled").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// ── Doc Push Log ─────────────────────────────────────
+
+export const docPushStatusEnum = pgEnum("doc_push_status", [
+  "success",
+  "error",
+]);
+
+export const docPushLog = pgTable("doc_push_log", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id")
+    .references(() => projects.id, { onDelete: "cascade" })
+    .notNull(),
+  targetRepo: varchar("target_repo", { length: 200 }).notNull(),
+  targetPath: varchar("target_path", { length: 500 }).notNull().default("CLAUDE.md"),
+  commitSha: varchar("commit_sha", { length: 40 }),
+  assembledContent: text("assembled_content").notNull(),
+  status: docPushStatusEnum("status").notNull(),
+  errorMessage: text("error_message"),
+  pushedAt: timestamp("pushed_at").defaultNow().notNull(),
+});
+
 // ── Relations ──────────────────────────────────────────
 
 export const projectsRelations = relations(projects, ({ many }) => ({
   settings: many(projectSettings),
   notifications: many(notifications),
+  docs: many(projectDocs),
+  pushLogs: many(docPushLog),
 }));
 
 export const projectSettingsRelations = relations(
@@ -287,3 +339,17 @@ export const notificationPreferencesRelations = relations(
     }),
   }),
 );
+
+export const projectDocsRelations = relations(projectDocs, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectDocs.projectId],
+    references: [projects.id],
+  }),
+}));
+
+export const docPushLogRelations = relations(docPushLog, ({ one }) => ({
+  project: one(projects, {
+    fields: [docPushLog.projectId],
+    references: [projects.id],
+  }),
+}));

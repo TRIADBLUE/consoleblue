@@ -166,6 +166,57 @@ class GitHubService {
     return matches;
   }
 
+  async getFileSha(
+    repo: string,
+    path: string,
+    branch?: string,
+  ): Promise<string | null> {
+    try {
+      const { data } = await this.octokit.rest.repos.getContent({
+        owner: this.owner,
+        repo,
+        path,
+        ...(branch ? { ref: branch } : {}),
+      });
+
+      if (Array.isArray(data) || data.type !== "file") {
+        return null;
+      }
+      return data.sha;
+    } catch (err: any) {
+      if (err.status === 404) return null;
+      throw err;
+    }
+  }
+
+  async pushFile(options: {
+    repo: string;
+    path: string;
+    content: string;
+    message: string;
+    branch?: string;
+  }): Promise<{ commitSha: string; commitUrl: string }> {
+    const { repo, path, content, message, branch } = options;
+
+    // Get existing file SHA if updating
+    const existingSha = await this.getFileSha(repo, path, branch);
+
+    const { data } = await this.octokit.rest.repos.createOrUpdateFileContents({
+      owner: this.owner,
+      repo,
+      path,
+      message,
+      content: Buffer.from(content, "utf-8").toString("base64"),
+      ...(existingSha ? { sha: existingSha } : {}),
+      ...(branch ? { branch } : {}),
+    });
+
+    return {
+      commitSha: data.commit.sha!,
+      commitUrl: data.commit.html_url!,
+    };
+  }
+
   async extractRoutes(repo: string) {
     const candidatePaths = [
       "client/src/App.tsx",

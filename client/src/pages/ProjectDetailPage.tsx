@@ -12,6 +12,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getBrandAssets } from "@/lib/assets";
+import { ProjectDocList } from "@/components/docs/ProjectDocList";
+import { DocAssemblyPreview } from "@/components/docs/DocAssemblyPreview";
+import { DocPushHistory } from "@/components/docs/DocPushHistory";
 import {
   ArrowLeft,
   ExternalLink,
@@ -19,6 +22,7 @@ import {
   Settings,
   Palette,
   FileCode,
+  FileText,
   Pencil,
 } from "lucide-react";
 import {
@@ -185,6 +189,10 @@ export default function ProjectDetailPage() {
               <Palette className="h-4 w-4" />
               Colors
             </TabsTrigger>
+            <TabsTrigger value="docs" className="gap-1">
+              <FileText className="h-4 w-4" />
+              Docs
+            </TabsTrigger>
             <TabsTrigger value="github" className="gap-1">
               <FileCode className="h-4 w-4" />
               GitHub
@@ -243,6 +251,20 @@ export default function ProjectDetailPage() {
                 />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="docs">
+            <div className="space-y-6">
+              <ProjectDocList projectSlug={project.slug} />
+              <DocAssemblyPreview
+                projectSlug={project.slug}
+                githubRepo={project.githubRepo}
+              />
+              <DocPushHistory
+                projectSlug={project.slug}
+                githubOwner={project.githubOwner}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="github">

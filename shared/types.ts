@@ -130,6 +130,75 @@ export interface AuditLogResponse {
   total: number;
 }
 
+// ── Doc Types ─────────────────────────────────────────
+
+export interface SharedDoc {
+  id: number;
+  slug: string;
+  title: string;
+  content: string;
+  displayOrder: number;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectDoc {
+  id: number;
+  projectId: number;
+  slug: string;
+  title: string;
+  content: string;
+  displayOrder: number;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DocPushLogEntry {
+  id: number;
+  projectId: number;
+  targetRepo: string;
+  targetPath: string;
+  commitSha: string | null;
+  assembledContent: string;
+  status: "success" | "error";
+  errorMessage: string | null;
+  pushedAt: string;
+}
+
+export interface SharedDocListResponse {
+  docs: SharedDoc[];
+}
+
+export interface ProjectDocListResponse {
+  docs: ProjectDoc[];
+}
+
+export interface DocAssemblyPreview {
+  assembledContent: string;
+  sharedDocs: { title: string; slug: string }[];
+  projectDocs: { title: string; slug: string }[];
+}
+
+export interface DocPushResponse {
+  success: boolean;
+  commitSha: string;
+  commitUrl: string;
+  targetRepo: string;
+  targetPath: string;
+}
+
+export interface DocPushHistoryResponse {
+  entries: DocPushLogEntry[];
+  total: number;
+}
+
+export interface ReorderDocsResponse {
+  success: boolean;
+  docs: SharedDoc[] | ProjectDoc[];
+}
+
 // ── GitHub Types ───────────────────────────────────────
 
 export interface GithubRepo {

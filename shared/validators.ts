@@ -136,6 +136,43 @@ export const auditLogQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).optional().default(0),
 });
 
+// ── Shared Doc Validators ──────────────────────────────
+
+export const insertSharedDocSchema = z.object({
+  slug: slug,
+  title: z.string().min(1).max(200),
+  content: z.string().default(""),
+  displayOrder: z.number().int().min(0).optional(),
+  enabled: z.boolean().optional(),
+});
+
+export const updateSharedDocSchema = insertSharedDocSchema.partial();
+
+export const reorderDocsSchema = z.object({
+  docIds: z
+    .array(z.number().int().positive())
+    .min(1, "Must provide at least one doc ID"),
+});
+
+// ── Project Doc Validators ─────────────────────────────
+
+export const insertProjectDocSchema = z.object({
+  slug: slug,
+  title: z.string().min(1).max(200),
+  content: z.string().default(""),
+  displayOrder: z.number().int().min(0).optional(),
+  enabled: z.boolean().optional(),
+});
+
+export const updateProjectDocSchema = insertProjectDocSchema.partial();
+
+// ── Doc Push Validators ────────────────────────────────
+
+export const docPushSchema = z.object({
+  targetPath: z.string().max(500).optional().default("CLAUDE.md"),
+  commitMessage: z.string().max(500).optional(),
+});
+
 // ── Export Types ────────────────────────────────────────
 
 export type InsertProject = z.infer<typeof insertProjectSchema>;
@@ -145,3 +182,9 @@ export type UpdateColors = z.infer<typeof updateColorsSchema>;
 export type UpsertSettings = z.infer<typeof upsertSettingsSchema>;
 export type UpsertPreferences = z.infer<typeof upsertPreferencesSchema>;
 export type SyncRequest = z.infer<typeof syncRequestSchema>;
+export type InsertSharedDoc = z.infer<typeof insertSharedDocSchema>;
+export type UpdateSharedDoc = z.infer<typeof updateSharedDocSchema>;
+export type InsertProjectDoc = z.infer<typeof insertProjectDocSchema>;
+export type UpdateProjectDoc = z.infer<typeof updateProjectDocSchema>;
+export type DocPushRequest = z.infer<typeof docPushSchema>;
+export type ReorderDocs = z.infer<typeof reorderDocsSchema>;
