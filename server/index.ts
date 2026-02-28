@@ -30,7 +30,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours default
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
@@ -44,10 +44,11 @@ registerRoutes(app, db);
 
 async function startServer() {
   if (process.env.NODE_ENV === "production") {
-    // Production: serve built static files
     const publicDir = path.resolve(__dirname, "public");
+    console.log(`[server] Serving static files from: ${publicDir}`);
     app.use(express.static(publicDir));
-    app.get("*", (_req, res) => {
+    app.get("*", (_req, res, next) => {
+      if (_req.path.startsWith("/api/")) return next();
       res.sendFile(path.join(publicDir, "index.html"));
     });
   } else {
