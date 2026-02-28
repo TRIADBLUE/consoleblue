@@ -103,7 +103,7 @@ export const SEED_PROJECTS: InsertProject[] = [
     displayName: "scansblue",
     description: "Security scanning and analysis tools",
     githubRepo: "scanslab",
-    colorPrimary: "#FF6600",
+    colorPrimary: "#A00028",
     colorAccent: "#0000FF",
     iconUrl: "/assets/brands/scansblue/icon.png",
     status: "development",
