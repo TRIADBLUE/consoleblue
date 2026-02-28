@@ -93,10 +93,12 @@ export function createAuthRoutes(db: NodePgDatabase) {
       const baseUrl =
         process.env.FRONTEND_URL ||
         (req.headers.origin || `${req.protocol}://${req.get("host")}`);
-      const loginUrl = `${baseUrl}/magic-login?token=${token}`;
+      const loginUrl = `${baseUrl}/api/auth/verify-magic-link?token=${token}`;
 
+      console.log(`[auth] Sending magic link to ${email}, URL: ${loginUrl}`);
       try {
         await sendMagicLink(email, loginUrl);
+        console.log(`[auth] Magic link sent successfully to ${email}`);
       } catch (emailErr) {
         console.error("[auth] Failed to send magic link:", emailErr);
       }
