@@ -35,17 +35,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
           <div className="flex items-center justify-between h-14">
             {/* Left: Logo + Nav */}
             <div className="flex items-center gap-8">
-              <Link href="/" className="flex items-center">
-                <img
-                  src={BRAND_ASSETS.consoleblue.lockup}
-                  alt="console.blue"
-                  className="h-8 hidden sm:block"
-                />
+              <Link href="/" className="flex items-center gap-2">
                 <img
                   src={BRAND_ASSETS.consoleblue.icon}
-                  alt="console.blue"
-                  className="h-8 w-8 sm:hidden"
+                  alt=""
+                  className="h-8 w-8"
                 />
+                <span className="font-bold text-lg hidden sm:block">
+                  <span style={{ color: "#FF44CC" }}>Console</span>
+                  <span style={{ color: "#0000FF" }}>Blue</span>
+                </span>
               </Link>
 
               <nav className="flex items-center gap-1">
