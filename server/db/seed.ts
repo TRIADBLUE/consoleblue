@@ -36,8 +36,7 @@ export const SEED_PROJECTS: InsertProject[] = [
   {
     slug: "linkblue",
     displayName: "LINKBlue",
-    description:
-      "Local business digital marketing platform — SEO, reputation, communications",
+    description: "Website monitoring and health tracking panel",
     githubRepo: "linkblue",
     colorPrimary: "#0066FF",
     colorAccent: "#00CCFF",
