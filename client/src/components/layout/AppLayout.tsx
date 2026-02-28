@@ -42,7 +42,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   className="h-8 w-8"
                 />
                 <span className="font-bold text-lg hidden sm:block">
-                  <span style={{ color: "#FF44CC" }}>Console</span>
+                  <span style={{ color: "#FF44CC" }}>Console.</span>
                   <span style={{ color: "#0000FF" }}>Blue</span>
                 </span>
               </Link>

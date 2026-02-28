@@ -29,8 +29,8 @@ export const SEED_PROJECTS: InsertProject[] = [
     displayOrder: 1,
     visible: true,
     tags: ["dashboard", "admin"],
-    subdomainUrl: "consoleblue.triadblue.com",
-    productionUrl: "https://consoleblue.triadblue.com",
+    subdomainUrl: "console.blue",
+    productionUrl: "https://console.blue",
     syncEnabled: true,
   },
   {
