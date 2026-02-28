@@ -9,6 +9,7 @@ channel = "stable-24_05"
 deploymentTarget = "autoscale"
 build = ["sh", "-c", "npm run build"]
 run = ["sh", "-c", "NODE_ENV=production node dist/index.js"]
+publicDir = "dist/public"
 
 [workflows]
 runButton = "Project"
