@@ -9,7 +9,6 @@
  *   npx tsx server/scripts/reset-password.ts admin@example.com myNewPass123
  */
 
-import * as bcrypt from "bcryptjs";
 import pg from "pg";
 
 async function main() {
@@ -49,7 +48,8 @@ async function main() {
     const user = rows[0];
 
     // Hash and update
-    const hash = await bcrypt.hash(newPassword, 12);
+    const bcrypt = await import("bcrypt");
+    const hash = await bcrypt.default.hash(newPassword, 12);
     await client.query(
       "UPDATE admin_users SET password_hash = $1, failed_login_attempts = 0, account_locked = false, locked_until = NULL WHERE id = $2",
       [hash, user.id],
