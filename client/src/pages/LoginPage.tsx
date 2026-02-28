@@ -17,19 +17,24 @@ export default function LoginPage() {
   const params = new URLSearchParams(window.location.search);
   const urlError = params.get("error");
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function sendLink(targetEmail?: string) {
+    const addr = targetEmail || email;
+    if (!addr) return;
     setError("");
     setSending(true);
-
     try {
-      await apiClient.post("/auth/send-magic-link", { email });
+      await apiClient.post("/auth/send-magic-link", { email: addr });
       setSent(true);
     } catch {
-      setSent(true); // always show sent to prevent email enumeration
+      setSent(true);
     } finally {
       setSending(false);
     }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    await sendLink();
   }
 
   return (
@@ -70,19 +75,22 @@ export default function LoginPage() {
               <p className="text-xs text-gray-400">
                 The link expires in 15 minutes.
               </p>
-              <button
-                onClick={() => { setSent(false); setSending(false); }}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                Resend link
-              </button>
-              <span className="text-gray-300 mx-2">|</span>
-              <button
-                onClick={() => { setSent(false); setEmail(""); setError(""); }}
-                className="text-sm text-gray-500 hover:underline"
-              >
-                Try a different email
-              </button>
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  onClick={() => sendLink(email)}
+                  disabled={sending}
+                  className="text-sm text-blue-600 hover:underline disabled:opacity-50"
+                >
+                  {sending ? "Sending..." : "Resend link"}
+                </button>
+                <span className="text-gray-300">|</span>
+                <button
+                  onClick={() => { setSent(false); setEmail(""); setError(""); }}
+                  className="text-sm text-gray-500 hover:underline"
+                >
+                  Try a different email
+                </button>
+              </div>
             </div>
           ) : (
             <>
