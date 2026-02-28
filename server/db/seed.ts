@@ -3,7 +3,7 @@ import type { InsertProject } from "../../shared/validators";
 export const SEED_PROJECTS: InsertProject[] = [
   {
     slug: "triadblue",
-    displayName: "TriadBlue",
+    displayName: "TRIADBLUE",
     description: "Core platform and ecosystem hub",
     githubRepo: "triadblue",
     colorPrimary: "#0000FF",
@@ -35,7 +35,7 @@ export const SEED_PROJECTS: InsertProject[] = [
   },
   {
     slug: "linkblue",
-    displayName: "LinkBlue",
+    displayName: "LINKBlue",
     description:
       "Local business digital marketing platform — SEO, reputation, communications",
     githubRepo: "linkblue",
@@ -52,7 +52,7 @@ export const SEED_PROJECTS: InsertProject[] = [
   },
   {
     slug: "hostsblue",
-    displayName: "HostsBlue",
+    displayName: "hostsblue",
     description: "Web hosting and infrastructure management",
     githubRepo: "hostsblue",
     colorPrimary: "#660099",
@@ -68,7 +68,7 @@ export const SEED_PROJECTS: InsertProject[] = [
   },
   {
     slug: "swipesblue",
-    displayName: "SwipesBlue",
+    displayName: "swipesblue",
     description: "Payment processing and transaction management",
     githubRepo: "swipesblue",
     colorPrimary: "#CC0000",
@@ -84,7 +84,7 @@ export const SEED_PROJECTS: InsertProject[] = [
   },
   {
     slug: "businessblueprint",
-    displayName: "BusinessBlueprint",
+    displayName: "businessblueprint",
     description:
       "AI-powered business planning and digital assessment platform",
     githubRepo: "businessblueprint",
@@ -101,7 +101,7 @@ export const SEED_PROJECTS: InsertProject[] = [
   },
   {
     slug: "scansblue",
-    displayName: "ScansBlue",
+    displayName: "scansblue",
     description: "Security scanning and analysis tools",
     githubRepo: "scanslab",
     colorPrimary: "#FF6600",
