@@ -75,9 +75,12 @@ export function registerRoutes(app: Express, db: NodePgDatabase) {
     createDocPushRoutes(db, auditService),
   );
 
-  // Doc generator (starter doc generation)
+  // Doc generator templates (global)
+  app.use("/api/doc-generator", createDocGeneratorRoutes(db, auditService));
+
+  // Doc auto-generation (per-project)
   app.use(
-    "/api/projects/:idOrSlug/docs/generate",
+    "/api/projects/:idOrSlug/generate-docs",
     createDocGeneratorRoutes(db, auditService),
   );
 
