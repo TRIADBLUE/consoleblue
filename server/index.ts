@@ -46,7 +46,18 @@ async function startServer() {
   if (process.env.NODE_ENV === "production") {
     const publicDir = path.resolve(__dirname, "public");
     console.log(`[server] Serving static files from: ${publicDir}`);
-    app.use(express.static(publicDir));
+
+    // Cache static assets (images, fonts, icons) for 7 days
+    app.use(
+      "/assets",
+      express.static(path.join(publicDir, "assets"), {
+        maxAge: "7d",
+        immutable: true,
+      }),
+    );
+
+    // Other static files (JS/CSS bundles) — short cache with etag
+    app.use(express.static(publicDir, { maxAge: "1h" }));
     app.get("*", (_req, res, next) => {
       if (_req.path.startsWith("/api/")) return next();
       res.sendFile(path.join(publicDir, "index.html"));
