@@ -7,6 +7,7 @@ import {
   reorderProjectsSchema,
 } from "../../shared/validators";
 import { validateBody } from "../middleware/validation";
+import { DocGeneratorService } from "../services/doc-generator.service";
 import type { AuditService } from "../services/audit.service";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
@@ -15,6 +16,7 @@ export function createProjectRoutes(
   auditService: AuditService,
 ) {
   const router = Router();
+  const docGenerator = new DocGeneratorService(db, auditService);
 
   // Helper: find project by ID or slug
   async function findProject(idOrSlug: string) {
@@ -134,6 +136,18 @@ export function createProjectRoutes(
           entitySlug: project.slug,
           newValue: project,
         });
+
+        // Auto-generate onboarding docs for the new project
+        try {
+          const genResult = await docGenerator.generateForNewProject(project.id);
+          console.log(
+            `[projects] Auto-generated ${genResult.docsCreated} docs for ${project.slug}` +
+            (genResult.autoPushed ? ` (pushed to GitHub: ${genResult.commitSha?.slice(0, 7)})` : "")
+          );
+        } catch (docErr) {
+          // Don't fail the project creation if doc generation fails
+          console.error(`[projects] Doc auto-generation failed for ${project.slug}:`, docErr);
+        }
 
         res.status(201).json({ project });
       } catch (err) {

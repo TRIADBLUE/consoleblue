@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useRoute, Link } from "wouter";
 import { useProject } from "@/hooks/use-projects";
+import { useProjectDocs } from "@/hooks/use-project-docs";
 import { ProjectForm } from "@/components/projects/ProjectForm";
 import { ProjectColorPicker } from "@/components/projects/ProjectColorPicker";
 import { ProjectStatusBadge } from "@/components/projects/ProjectStatusBadge";
@@ -13,6 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getBrandAssets } from "@/lib/assets";
 import { DocPlanner } from "@/components/docs/DocPlanner";
+import { ProjectDocList } from "@/components/docs/ProjectDocList";
+import { DocAssemblyPreview } from "@/components/docs/DocAssemblyPreview";
+import { DocPushHistory } from "@/components/docs/DocPushHistory";
 import {
   ArrowLeft,
   ExternalLink,
@@ -35,6 +39,7 @@ export default function ProjectDetailPage() {
   const [, params] = useRoute("/projects/:slug");
   const slug = params?.slug || "";
   const { data, isLoading, error } = useProject(slug);
+  const { data: docsData } = useProjectDocs(slug);
   const [editOpen, setEditOpen] = useState(false);
 
   if (isLoading) {
@@ -252,12 +257,23 @@ export default function ProjectDetailPage() {
           </TabsContent>
 
           <TabsContent value="docs">
-            <DocPlanner
-              projectSlug={project.slug}
-              projectName={project.displayName}
-              githubRepo={project.githubRepo}
-              githubOwner={project.githubOwner}
-            />
+            <div className="space-y-6">
+              <DocPlanner
+                projectSlug={project.slug}
+                projectName={project.displayName}
+                githubRepo={project.githubRepo}
+                hasExistingDocs={(docsData?.docs?.length ?? 0) > 0}
+              />
+              <ProjectDocList projectSlug={project.slug} />
+              <DocAssemblyPreview
+                projectSlug={project.slug}
+                githubRepo={project.githubRepo}
+              />
+              <DocPushHistory
+                projectSlug={project.slug}
+                githubOwner={project.githubOwner}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="github">
