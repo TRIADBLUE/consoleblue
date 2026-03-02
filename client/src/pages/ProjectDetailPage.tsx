@@ -12,9 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getBrandAssets } from "@/lib/assets";
-import { ProjectDocList } from "@/components/docs/ProjectDocList";
-import { DocAssemblyPreview } from "@/components/docs/DocAssemblyPreview";
-import { DocPushHistory } from "@/components/docs/DocPushHistory";
+import { DocPlanner } from "@/components/docs/DocPlanner";
 import {
   ArrowLeft,
   ExternalLink,
@@ -254,17 +252,12 @@ export default function ProjectDetailPage() {
           </TabsContent>
 
           <TabsContent value="docs">
-            <div className="space-y-6">
-              <ProjectDocList projectSlug={project.slug} />
-              <DocAssemblyPreview
-                projectSlug={project.slug}
-                githubRepo={project.githubRepo}
-              />
-              <DocPushHistory
-                projectSlug={project.slug}
-                githubOwner={project.githubOwner}
-              />
-            </div>
+            <DocPlanner
+              projectSlug={project.slug}
+              projectName={project.displayName}
+              githubRepo={project.githubRepo}
+              githubOwner={project.githubOwner}
+            />
           </TabsContent>
 
           <TabsContent value="github">
