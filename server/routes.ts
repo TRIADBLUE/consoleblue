@@ -15,6 +15,7 @@ import { createNotificationRoutes } from "./routes/notifications";
 import { createSharedDocRoutes } from "./routes/shared-docs";
 import { createProjectDocRoutes } from "./routes/project-docs";
 import { createDocPushRoutes } from "./routes/doc-push";
+import { createDocGeneratorRoutes } from "./routes/doc-generator";
 import { errorHandler } from "./middleware/error-handler";
 
 export function registerRoutes(app: Express, db: NodePgDatabase) {
@@ -72,6 +73,12 @@ export function registerRoutes(app: Express, db: NodePgDatabase) {
   app.use(
     "/api/projects/:idOrSlug/docs/push",
     createDocPushRoutes(db, auditService),
+  );
+
+  // Doc generator (starter doc generation)
+  app.use(
+    "/api/projects/:idOrSlug/docs/generate",
+    createDocGeneratorRoutes(db, auditService),
   );
 
   // ── Error Handler ──────────────────────────────────
