@@ -9,6 +9,7 @@ import ProjectGitHubPage from "@/pages/ProjectGitHubPage";
 import AuditLogPage from "@/pages/AuditLogPage";
 import SettingsPage from "@/pages/SettingsPage";
 import SharedDocsPage from "@/pages/SharedDocsPage";
+import { NewProjectDocsAlert } from "@/components/docs/NewProjectDocsAlert";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -38,7 +39,12 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     return <Redirect to="/login" />;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <NewProjectDocsAlert />
+    </>
+  );
 }
 
 function ProtectedRoute({

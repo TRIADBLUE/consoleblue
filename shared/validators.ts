@@ -173,6 +173,12 @@ export const docPushSchema = z.object({
   commitMessage: z.string().max(500).optional(),
 });
 
+// ── Doc Generate Validator ─────────────────────────────
+
+export const docGenerateSchema = z.object({
+  force: z.boolean().optional().default(false),
+});
+
 // ── Export Types ────────────────────────────────────────
 
 export type InsertProject = z.infer<typeof insertProjectSchema>;
@@ -188,3 +194,4 @@ export type InsertProjectDoc = z.infer<typeof insertProjectDocSchema>;
 export type UpdateProjectDoc = z.infer<typeof updateProjectDocSchema>;
 export type DocPushRequest = z.infer<typeof docPushSchema>;
 export type ReorderDocs = z.infer<typeof reorderDocsSchema>;
+export type DocGenerate = z.infer<typeof docGenerateSchema>;
