@@ -199,6 +199,11 @@ export interface ReorderDocsResponse {
   docs: SharedDoc[] | ProjectDoc[];
 }
 
+export interface DocGenerateResponse {
+  docs: ProjectDoc[];
+  generated: number;
+}
+
 // ── GitHub Types ───────────────────────────────────────
 
 export interface GithubRepo {
