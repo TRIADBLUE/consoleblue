@@ -3,6 +3,7 @@ import { useLocation, Link } from "wouter";
 import { useAuth, useLogout } from "@/hooks/use-auth";
 import { BRAND_ASSETS } from "@/lib/assets";
 import NotificationBell from "@/components/NotificationBell";
+import { TaskContextMenuProvider } from "@/components/tasks/TaskContextMenuProvider";
 import { Button } from "@/components/ui/button";
 
 interface AppLayoutProps {
@@ -10,8 +11,15 @@ interface AppLayoutProps {
 }
 
 const NAV_ITEMS = [
-  { label: "Projects", href: "/" },
+  { label: "Dashboard", href: "/" },
+  { label: "Projects", href: "/projects" },
+  { label: "Tasks", href: "/tasks" },
+  { label: "Chat", href: "/chat" },
   { label: "Docs", href: "/docs" },
+  { label: "Analytics", href: "/analytics" },
+  { label: "Assets", href: "/assets" },
+  { label: "Links", href: "/link-monitor" },
+  { label: "Team", href: "/team" },
   { label: "Audit Log", href: "/audit" },
   { label: "Settings", href: "/settings" },
 ];
@@ -47,16 +55,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
                 </span>
               </Link>
 
-              <nav className="flex items-center gap-1">
+              <nav className="flex items-center gap-0.5 overflow-x-auto">
                 {NAV_ITEMS.map((item) => {
                   const isActive =
                     item.href === "/"
-                      ? location === "/" || location.startsWith("/projects")
-                      : location === item.href || location.startsWith(item.href + "/");
+                      ? location === "/"
+                      : location === item.href ||
+                        location.startsWith(item.href + "/");
                   return (
                     <Link key={item.href} href={item.href}>
                       <span
-                        className={`px-3 py-1.5 rounded-md text-sm transition-colors cursor-pointer ${
+                        className={`px-2.5 py-1.5 rounded-md text-xs whitespace-nowrap transition-colors cursor-pointer ${
                           isActive
                             ? "bg-blue-50 text-blue-700 font-medium"
                             : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
@@ -97,8 +106,10 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </div>
       </header>
 
-      {/* Main content */}
-      <main>{children}</main>
+      {/* Main content with Task Context Menu */}
+      <main>
+        <TaskContextMenuProvider>{children}</TaskContextMenuProvider>
+      </main>
     </div>
   );
 }

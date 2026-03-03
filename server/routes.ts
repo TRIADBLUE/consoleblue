@@ -16,6 +16,14 @@ import { createSharedDocRoutes } from "./routes/shared-docs";
 import { createProjectDocRoutes } from "./routes/project-docs";
 import { createDocPushRoutes } from "./routes/doc-push";
 import { createDocGeneratorRoutes } from "./routes/doc-generator";
+import { createTaskRoutes } from "./routes/tasks";
+import { createSitePlannerRoutes } from "./routes/site-planner";
+import { createChatRoutes } from "./routes/chat";
+import { createDashboardRoutes } from "./routes/dashboard";
+import { createAnalyticsRoutes } from "./routes/analytics";
+import { createAssetRoutes } from "./routes/assets";
+import { createLinkMonitorRoutes } from "./routes/link-monitor";
+import { createTeamRoutes } from "./routes/team";
 import { errorHandler } from "./middleware/error-handler";
 
 export function registerRoutes(app: Express, db: NodePgDatabase) {
@@ -83,6 +91,33 @@ export function registerRoutes(app: Express, db: NodePgDatabase) {
     "/api/projects/:idOrSlug/generate-docs",
     createDocGeneratorRoutes(db, auditService),
   );
+
+  // Tasks
+  app.use("/api/tasks", createTaskRoutes(db, auditService));
+
+  // Site Planner (nested under projects)
+  app.use(
+    "/api/projects/:idOrSlug/site-plan",
+    createSitePlannerRoutes(db, auditService),
+  );
+
+  // Chat system
+  app.use("/api/chat", createChatRoutes(db, auditService));
+
+  // Dashboard
+  app.use("/api/dashboard", createDashboardRoutes(db, auditService));
+
+  // Analytics
+  app.use("/api/analytics", createAnalyticsRoutes(db, auditService));
+
+  // Assets
+  app.use("/api/assets", createAssetRoutes(db, auditService));
+
+  // Link Monitor
+  app.use("/api/link-monitor", createLinkMonitorRoutes(db, auditService));
+
+  // Team
+  app.use("/api/team", createTeamRoutes(db, auditService));
 
   // ── Error Handler ──────────────────────────────────
   app.use(errorHandler);

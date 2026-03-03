@@ -204,6 +204,232 @@ export interface DocGenerateResponse {
   generated: number;
 }
 
+// ── Task Types ─────────────────────────────────────────
+
+export type TaskStatus = "backlog" | "todo" | "in_progress" | "review" | "done";
+export type TaskPriority = "low" | "medium" | "high" | "critical";
+export type HighlightSourceType = "page" | "component" | "text";
+
+export interface Task {
+  id: number;
+  projectId: number | null;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assignedTo: number | null;
+  parentTaskId: number | null;
+  displayOrder: number;
+  tags: string[];
+  dueDate: string | null;
+  completedAt: string | null;
+  createdBy: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TaskNote {
+  id: number;
+  taskId: number;
+  content: string;
+  createdBy: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TaskHighlight {
+  id: number;
+  taskId: number;
+  sourceType: HighlightSourceType;
+  sourcePath: string | null;
+  highlightedText: string;
+  contextSnippet: string | null;
+  createdBy: number | null;
+  createdAt: string;
+}
+
+export interface TaskListResponse {
+  tasks: Task[];
+  total: number;
+}
+
+export interface TaskDetailResponse {
+  task: Task;
+  notes: TaskNote[];
+  highlights: TaskHighlight[];
+}
+
+export interface TaskStatsResponse {
+  byStatus: Record<TaskStatus, number>;
+  byPriority: Record<TaskPriority, number>;
+  total: number;
+  overdue: number;
+}
+
+// ── Site Planner Types ─────────────────────────────────
+
+export type PageType = "page" | "layout" | "component" | "api";
+export type PageStatus = "planned" | "in_progress" | "complete";
+export type ConnectionType = "navigates_to" | "includes" | "inherits" | "api_call";
+
+export interface SitePlan {
+  id: number;
+  projectId: number;
+  name: string;
+  canvasState: { zoom: number; panX: number; panY: number };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SitePage {
+  id: number;
+  sitePlanId: number;
+  title: string;
+  path: string | null;
+  pageType: PageType;
+  description: string | null;
+  status: PageStatus;
+  position: { x: number; y: number };
+  size: { w: number; h: number };
+  linkedTaskId: number | null;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SiteConnection {
+  id: number;
+  sitePlanId: number;
+  sourcePageId: number;
+  targetPageId: number;
+  connectionType: ConnectionType;
+  label: string | null;
+  createdAt: string;
+}
+
+export interface SitePlanResponse {
+  plan: SitePlan;
+  pages: SitePage[];
+  connections: SiteConnection[];
+}
+
+// ── Chat Types ─────────────────────────────────────────
+
+export type AgentRole = "builder" | "architect";
+export type ChatThreadStatus = "active" | "archived";
+export type ChatMessageRole = "user" | "assistant" | "system";
+export type AIProviderType =
+  | "anthropic"
+  | "openai"
+  | "google"
+  | "deepseek"
+  | "kimi"
+  | "groq"
+  | "replit";
+
+export interface ChatThread {
+  id: number;
+  projectId: number | null;
+  title: string;
+  agentRole: AgentRole;
+  providerSlug: string | null;
+  modelId: string | null;
+  status: ChatThreadStatus;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatMessage {
+  id: number;
+  threadId: number;
+  role: ChatMessageRole;
+  content: string;
+  tokenCount: number | null;
+  linkedTaskId: number | null;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface AIProviderConfig {
+  id: number;
+  slug: string;
+  displayName: string;
+  providerType: AIProviderType;
+  isEnabled: boolean;
+  defaultForRole: AgentRole | null;
+  modelTiers: { builder?: string; architect?: string };
+  config: { baseUrl?: string; headers?: Record<string, string> };
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ChatThreadListResponse {
+  threads: ChatThread[];
+  total: number;
+}
+
+export interface ChatThreadDetailResponse {
+  thread: ChatThread;
+  messages: ChatMessage[];
+}
+
+export interface ChatProviderListResponse {
+  providers: AIProviderConfig[];
+}
+
+// ── Asset Types ────────────────────────────────────────
+
+export type AssetCategory = "icon" | "logo" | "screenshot" | "document";
+
+export interface Asset {
+  id: number;
+  projectId: number | null;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  storagePath: string;
+  category: AssetCategory;
+  uploadedBy: number | null;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface AssetListResponse {
+  assets: Asset[];
+  total: number;
+}
+
+// ── Link Monitor Types ─────────────────────────────────
+
+export interface LinkCheck {
+  id: number;
+  projectId: number;
+  url: string;
+  statusCode: number | null;
+  responseTimeMs: number | null;
+  isHealthy: boolean;
+  errorMessage: string | null;
+  checkedAt: string;
+}
+
+export interface LinkCheckListResponse {
+  checks: LinkCheck[];
+  total: number;
+}
+
+// ── Dashboard Types ────────────────────────────────────
+
+export interface DashboardStatsResponse {
+  totalProjects: number;
+  activeTasks: number;
+  openThreads: number;
+  recentPushes: number;
+  tasksByStatus: Record<TaskStatus, number>;
+  recentActivity: AuditLogEntry[];
+}
+
 // ── GitHub Types ───────────────────────────────────────
 
 export interface GithubRepo {

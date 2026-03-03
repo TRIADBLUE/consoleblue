@@ -179,6 +179,150 @@ export const docGenerateSchema = z.object({
   force: z.boolean().optional().default(false),
 });
 
+// ── Task Validators ───────────────────────────────────
+
+export const insertTaskSchema = z.object({
+  projectId: z.number().int().positive().optional().nullable(),
+  title: z.string().min(1).max(500),
+  description: z.string().optional().nullable(),
+  status: z.enum(["backlog", "todo", "in_progress", "review", "done"]).optional(),
+  priority: z.enum(["low", "medium", "high", "critical"]).optional(),
+  assignedTo: z.number().int().positive().optional().nullable(),
+  parentTaskId: z.number().int().positive().optional().nullable(),
+  displayOrder: z.number().int().min(0).optional(),
+  tags: z.array(z.string()).optional(),
+  dueDate: z.string().optional().nullable(),
+});
+
+export const updateTaskSchema = insertTaskSchema.partial();
+
+export const reorderTasksSchema = z.object({
+  taskIds: z
+    .array(z.number().int().positive())
+    .min(1, "Must provide at least one task ID"),
+  status: z.enum(["backlog", "todo", "in_progress", "review", "done"]),
+});
+
+export const insertTaskNoteSchema = z.object({
+  content: z.string().min(1),
+});
+
+export const insertTaskHighlightSchema = z.object({
+  sourceType: z.enum(["page", "component", "text"]),
+  sourcePath: z.string().optional().nullable(),
+  highlightedText: z.string().min(1),
+  contextSnippet: z.string().optional().nullable(),
+});
+
+export const taskListQuerySchema = z.object({
+  projectId: z.coerce.number().int().optional(),
+  status: z.enum(["backlog", "todo", "in_progress", "review", "done"]).optional(),
+  priority: z.enum(["low", "medium", "high", "critical"]).optional(),
+  assignedTo: z.coerce.number().int().optional(),
+  search: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(200).optional().default(100),
+  offset: z.coerce.number().int().min(0).optional().default(0),
+});
+
+// ── Site Planner Validators ───────────────────────────
+
+export const updateCanvasStateSchema = z.object({
+  name: z.string().min(1).max(200).optional(),
+  canvasState: z
+    .object({
+      zoom: z.number().min(0.1).max(5),
+      panX: z.number(),
+      panY: z.number(),
+    })
+    .optional(),
+});
+
+export const insertSitePageSchema = z.object({
+  title: z.string().min(1).max(200),
+  path: z.string().max(500).optional().nullable(),
+  pageType: z.enum(["page", "layout", "component", "api"]).optional(),
+  description: z.string().optional().nullable(),
+  status: z.enum(["planned", "in_progress", "complete"]).optional(),
+  position: z.object({ x: z.number(), y: z.number() }).optional(),
+  size: z.object({ w: z.number(), h: z.number() }).optional(),
+  linkedTaskId: z.number().int().positive().optional().nullable(),
+  metadata: z.record(z.unknown()).optional(),
+});
+
+export const updateSitePageSchema = insertSitePageSchema.partial();
+
+export const insertSiteConnectionSchema = z.object({
+  sourcePageId: z.number().int().positive(),
+  targetPageId: z.number().int().positive(),
+  connectionType: z.enum(["navigates_to", "includes", "inherits", "api_call"]).optional(),
+  label: z.string().max(200).optional().nullable(),
+});
+
+export const linkTaskToPageSchema = z.object({
+  taskId: z.number().int().positive().nullable(),
+});
+
+// ── Chat Validators ───────────────────────────────────
+
+export const createChatThreadSchema = z.object({
+  projectId: z.number().int().positive().optional().nullable(),
+  title: z.string().min(1).max(500),
+  agentRole: z.enum(["builder", "architect"]).optional(),
+  providerSlug: z.string().max(50).optional(),
+  modelId: z.string().max(100).optional(),
+});
+
+export const sendChatMessageSchema = z.object({
+  content: z.string().min(1),
+  role: z.enum(["user", "assistant", "system"]).optional().default("user"),
+});
+
+export const updateProviderConfigSchema = z.object({
+  isEnabled: z.boolean().optional(),
+  defaultForRole: z.enum(["builder", "architect"]).optional().nullable(),
+  modelTiers: z
+    .object({
+      builder: z.string().optional(),
+      architect: z.string().optional(),
+    })
+    .optional(),
+  config: z
+    .object({
+      baseUrl: z.string().optional(),
+      headers: z.record(z.string()).optional(),
+    })
+    .optional(),
+});
+
+export const chatThreadListQuerySchema = z.object({
+  projectId: z.coerce.number().int().optional(),
+  agentRole: z.enum(["builder", "architect"]).optional(),
+  status: z.enum(["active", "archived"]).optional().default("active"),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(50),
+  offset: z.coerce.number().int().min(0).optional().default(0),
+});
+
+// ── Asset Validators ──────────────────────────────────
+
+export const assetListQuerySchema = z.object({
+  projectId: z.coerce.number().int().optional(),
+  category: z.enum(["icon", "logo", "screenshot", "document"]).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(50),
+  offset: z.coerce.number().int().min(0).optional().default(0),
+});
+
+// ── Link Monitor Validators ───────────────────────────
+
+export const triggerLinkCheckSchema = z.object({
+  projectId: z.number().int().positive(),
+});
+
+export const linkCheckQuerySchema = z.object({
+  projectId: z.coerce.number().int().optional(),
+  limit: z.coerce.number().int().min(1).max(200).optional().default(50),
+  offset: z.coerce.number().int().min(0).optional().default(0),
+});
+
 // ── Export Types ────────────────────────────────────────
 
 export type InsertProject = z.infer<typeof insertProjectSchema>;
@@ -195,3 +339,13 @@ export type UpdateProjectDoc = z.infer<typeof updateProjectDocSchema>;
 export type DocPushRequest = z.infer<typeof docPushSchema>;
 export type ReorderDocs = z.infer<typeof reorderDocsSchema>;
 export type DocGenerate = z.infer<typeof docGenerateSchema>;
+export type InsertTask = z.infer<typeof insertTaskSchema>;
+export type UpdateTask = z.infer<typeof updateTaskSchema>;
+export type InsertTaskNote = z.infer<typeof insertTaskNoteSchema>;
+export type InsertTaskHighlight = z.infer<typeof insertTaskHighlightSchema>;
+export type InsertSitePage = z.infer<typeof insertSitePageSchema>;
+export type UpdateSitePage = z.infer<typeof updateSitePageSchema>;
+export type InsertSiteConnection = z.infer<typeof insertSiteConnectionSchema>;
+export type CreateChatThread = z.infer<typeof createChatThreadSchema>;
+export type SendChatMessage = z.infer<typeof sendChatMessageSchema>;
+export type UpdateProviderConfig = z.infer<typeof updateProviderConfigSchema>;
