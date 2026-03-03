@@ -3,8 +3,11 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import path from "path";
 import { fileURLToPath } from "url";
+import { eq } from "drizzle-orm";
 import { registerRoutes } from "./routes";
 import { db, pool } from "./db/index";
+import { projects } from "../shared/schema";
+import { SEED_PROJECTS } from "./db/seed";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -42,7 +45,26 @@ app.use(
 // Register all API routes (before static files / vite)
 registerRoutes(app, db);
 
+async function seedProjectsIfNeeded() {
+  try {
+    for (const project of SEED_PROJECTS) {
+      const existing = await db
+        .select({ id: projects.id })
+        .from(projects)
+        .where(eq(projects.slug, project.slug))
+        .limit(1);
+      if (existing.length === 0) {
+        await db.insert(projects).values(project);
+        console.log(`[seed] Created "${project.slug}"`);
+      }
+    }
+  } catch (err) {
+    console.error("[seed] Error seeding projects:", err);
+  }
+}
+
 async function startServer() {
+  await seedProjectsIfNeeded();
   if (process.env.NODE_ENV === "production") {
     const publicDir = path.resolve(__dirname, "public");
     console.log(`[server] Serving static files from: ${publicDir}`);
