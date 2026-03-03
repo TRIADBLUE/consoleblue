@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useNotifications } from "@/hooks/use-notifications";
 import { apiClient } from "@/lib/api-client";
-import AppLayout from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,8 +29,7 @@ export default function SettingsPage() {
   const user = authData?.user;
 
   return (
-    <AppLayout>
-      <div className="max-w-3xl mx-auto py-8 px-4">
+    <div className="max-w-3xl mx-auto py-8 px-4">
         <h1 className="text-2xl font-bold mb-1">Settings</h1>
         <p className="text-muted-foreground mb-6">
           Manage your account and notification preferences
@@ -57,7 +55,6 @@ export default function SettingsPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
   );
 }
 

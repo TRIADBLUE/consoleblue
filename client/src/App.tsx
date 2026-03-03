@@ -119,7 +119,7 @@ function AppRouter() {
         <ProtectedRoute component={AuditLogPage} />
       </Route>
       <Route path="/settings">
-        <ProtectedRoute component={SettingsPage} withLayout={false} />
+        <ProtectedRoute component={SettingsPage} />
       </Route>
       <Route>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
