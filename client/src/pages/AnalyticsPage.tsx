@@ -21,10 +21,10 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function AnalyticsPage() {
-  const [projectId, setProjectId] = useState<string>("");
+  const [projectId, setProjectId] = useState<string>("all");
   const { data: projectData } = useProjects();
   const { data, isLoading } = useAnalytics(
-    projectId ? parseInt(projectId, 10) : undefined,
+    projectId !== "all" ? parseInt(projectId, 10) : undefined,
   );
 
   if (isLoading) {
@@ -52,7 +52,7 @@ export default function AnalyticsPage() {
             <SelectValue placeholder="All Projects" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Projects</SelectItem>
+            <SelectItem value="all">All Projects</SelectItem>
             {projectData?.projects.map((p) => (
               <SelectItem key={p.id} value={String(p.id)}>
                 {p.displayName}

@@ -192,7 +192,7 @@ export default function ChatPage() {
                     </SelectItem>
                   ))}
                   {enabledProviders.length === 0 && (
-                    <SelectItem value="" disabled>
+                    <SelectItem value="__none" disabled>
                       No providers enabled
                     </SelectItem>
                   )}

@@ -22,10 +22,10 @@ import {
 } from "lucide-react";
 
 export default function LinkMonitorPage() {
-  const [projectFilter, setProjectFilter] = useState<string>("");
+  const [projectFilter, setProjectFilter] = useState<string>("all");
   const { data: projectData } = useProjects();
   const { data, isLoading } = useLinkChecks(
-    projectFilter ? { projectId: parseInt(projectFilter, 10) } : undefined,
+    projectFilter !== "all" ? { projectId: parseInt(projectFilter, 10) } : undefined,
   );
   const triggerCheck = useTriggerLinkCheck();
 
@@ -62,7 +62,7 @@ export default function LinkMonitorPage() {
               <SelectValue placeholder="All Projects" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Projects</SelectItem>
+              <SelectItem value="all">All Projects</SelectItem>
               {projectData?.projects.map((p) => (
                 <SelectItem key={p.id} value={String(p.id)}>
                   {p.displayName}
@@ -88,7 +88,7 @@ export default function LinkMonitorPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         {projectData?.projects
           .filter((p) => p.productionUrl || p.subdomainUrl)
-          .filter((p) => !projectFilter || p.id === parseInt(projectFilter, 10))
+          .filter((p) => projectFilter === "all" || p.id === parseInt(projectFilter, 10))
           .map((project) => {
             const urls = [project.productionUrl, project.subdomainUrl].filter(
               Boolean,

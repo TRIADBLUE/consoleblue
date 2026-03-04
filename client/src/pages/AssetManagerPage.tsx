@@ -39,13 +39,13 @@ function formatBytes(bytes: number): string {
 }
 
 export default function AssetManagerPage() {
-  const [projectFilter, setProjectFilter] = useState<string>("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("");
+  const [projectFilter, setProjectFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: projectData } = useProjects();
   const { data, isLoading } = useAssets({
-    projectId: projectFilter ? parseInt(projectFilter, 10) : undefined,
-    category: categoryFilter || undefined,
+    projectId: projectFilter !== "all" ? parseInt(projectFilter, 10) : undefined,
+    category: categoryFilter !== "all" ? categoryFilter : undefined,
   });
   const uploadAsset = useUploadAsset();
   const deleteAsset = useDeleteAsset();
@@ -76,7 +76,7 @@ export default function AssetManagerPage() {
               <SelectValue placeholder="All Projects" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Projects</SelectItem>
+              <SelectItem value="all">All Projects</SelectItem>
               {projectData?.projects.map((p) => (
                 <SelectItem key={p.id} value={String(p.id)}>
                   {p.displayName}
@@ -90,7 +90,7 @@ export default function AssetManagerPage() {
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Types</SelectItem>
+              <SelectItem value="all">All Types</SelectItem>
               <SelectItem value="icon">Icon</SelectItem>
               <SelectItem value="logo">Logo</SelectItem>
               <SelectItem value="screenshot">Screenshot</SelectItem>

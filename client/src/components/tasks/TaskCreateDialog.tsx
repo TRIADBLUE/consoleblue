@@ -40,7 +40,7 @@ export function TaskCreateDialog({
   const [status, setStatus] = useState("todo");
   const [priority, setPriority] = useState("medium");
   const [projectId, setProjectId] = useState<string>(
-    defaultProjectId ? String(defaultProjectId) : "",
+    defaultProjectId ? String(defaultProjectId) : "none",
   );
 
   async function handleSubmit(e: React.FormEvent) {
@@ -52,7 +52,7 @@ export function TaskCreateDialog({
       description: description.trim() || undefined,
       status: status as any,
       priority: priority as any,
-      projectId: projectId ? parseInt(projectId, 10) : undefined,
+      projectId: projectId !== "none" ? parseInt(projectId, 10) : undefined,
     });
 
     setTitle("");
@@ -133,7 +133,7 @@ export function TaskCreateDialog({
                 <SelectValue placeholder="No project" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No project</SelectItem>
+                <SelectItem value="none">No project</SelectItem>
                 {projectData?.projects.map((p) => (
                   <SelectItem key={p.id} value={String(p.id)}>
                     {p.displayName}
