@@ -14,13 +14,13 @@ const NAV_ITEMS = [
   { label: "Dashboard", href: "/" },
   { label: "Projects", href: "/projects" },
   { label: "Tasks", href: "/tasks" },
-  { label: "Chat", href: "/chat" },
+  { label: "Builds", href: "/chat" },
   { label: "Docs", href: "/docs" },
   { label: "Analytics", href: "/analytics" },
   { label: "Assets", href: "/assets" },
   { label: "Links", href: "/link-monitor" },
   { label: "Team", href: "/team" },
-  { label: "Audit Log", href: "/audit" },
+  { label: "Activity", href: "/audit" },
   { label: "Settings", href: "/settings" },
 ];
 

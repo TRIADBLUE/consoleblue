@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuditLog } from "@/hooks/use-audit-log";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -12,9 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
-  ClipboardList,
+  Activity,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import type { AuditAction } from "@shared/types";
 
@@ -33,6 +35,7 @@ export default function AuditLogPage() {
   const [actionFilter, setActionFilter] = useState<string>("all");
   const [entityFilter, setEntityFilter] = useState<string>("all");
   const [offset, setOffset] = useState(0);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
   const limit = 25;
 
   const { data, isLoading } = useAuditLog({
@@ -47,8 +50,8 @@ export default function AuditLogPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <ClipboardList className="h-6 w-6 text-blue-600" />
-          <h1 className="text-2xl font-bold text-gray-900">Audit Log</h1>
+          <Activity className="h-6 w-6 text-blue-600" />
+          <h1 className="text-2xl font-bold text-gray-900">Activity</h1>
           {data && (
             <span className="text-sm text-gray-400">{data.total} entries</span>
           )}
@@ -98,31 +101,49 @@ export default function AuditLogPage() {
               </div>
             ) : (
               <div className="divide-y">
-                {data.entries.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="flex items-center gap-4 px-4 py-3 hover:bg-gray-50"
-                  >
-                    <Badge
-                      className={`text-xs ${ACTION_COLORS[entry.action] || ""}`}
-                    >
-                      {entry.action}
-                    </Badge>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm text-gray-700">
-                        {entry.entityType}
-                        {entry.entitySlug && (
-                          <span className="font-mono ml-1 text-gray-500">
-                            {entry.entitySlug}
+                {data.entries.map((entry) => {
+                  const isExpanded = expandedId === entry.id;
+                  const hasMetadata = entry.metadata && Object.keys(entry.metadata).length > 0;
+                  return (
+                    <div key={entry.id}>
+                      <button
+                        onClick={() => setExpandedId(isExpanded ? null : entry.id)}
+                        className="w-full flex items-center gap-4 px-4 py-3 hover:bg-gray-50 text-left"
+                      >
+                        <Badge
+                          className={`text-xs ${ACTION_COLORS[entry.action] || ""}`}
+                        >
+                          {entry.action}
+                        </Badge>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-sm text-gray-700">
+                            {entry.entityType}
+                            {entry.entitySlug && (
+                              <span className="font-mono ml-1 text-gray-500">
+                                {entry.entitySlug}
+                              </span>
+                            )}
                           </span>
+                        </div>
+                        <span className="text-xs text-gray-400 flex-shrink-0">
+                          {new Date(entry.createdAt).toLocaleString()}
+                        </span>
+                        {hasMetadata && (
+                          isExpanded
+                            ? <ChevronUp className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                            : <ChevronDown className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
                         )}
-                      </span>
+                      </button>
+                      {isExpanded && hasMetadata && (
+                        <div className="px-4 pb-3 pt-0">
+                          <pre className="text-xs font-mono bg-gray-50 border border-gray-200 rounded p-3 overflow-x-auto text-gray-600 whitespace-pre-wrap">
+                            {JSON.stringify(entry.metadata, null, 2)}
+                          </pre>
+                        </div>
+                      )}
                     </div>
-                    <span className="text-xs text-gray-400 flex-shrink-0">
-                      {new Date(entry.createdAt).toLocaleString()}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
