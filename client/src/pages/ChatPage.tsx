@@ -199,7 +199,7 @@ function ChatPane({
 
   if (!threadId) {
     return (
-      <div className="flex flex-col bg-white rounded-lg border border-gray-200 opacity-40">
+      <div className="flex flex-col bg-white rounded-lg border border-gray-200 opacity-40 h-full">
         <div
           className="px-3 py-2 border-b flex items-center gap-2"
           style={{ borderTopColor: colorAccent, borderTopWidth: 3 }}
@@ -215,7 +215,7 @@ function ChatPane({
   }
 
   return (
-    <div className="flex flex-col bg-white rounded-lg border border-gray-200 min-w-0">
+    <div className="flex flex-col bg-white rounded-lg border border-gray-200 min-w-0 h-full overflow-hidden">
       {/* Header */}
       <div
         className="px-3 py-2 border-b flex items-center gap-2"
@@ -841,7 +841,7 @@ export default function ChatPage() {
 
   return (
     <ProposalContext.Provider value={proposalCtx}>
-      <div className="max-w-[1800px] mx-auto px-4 py-4">
+      <div className="max-w-[1800px] mx-auto px-4 py-4 h-screen overflow-hidden flex flex-col">
         {/* Top Bar */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3 flex-wrap">
@@ -952,10 +952,7 @@ export default function ChatPage() {
         </div>
 
         {/* Three-Column Layout */}
-        <div
-          className="grid gap-3 h-[calc(100vh-120px)]"
-          style={{ gridTemplateColumns: "280px 1fr 280px" }}
-        >
+        <div className="grid gap-3 flex-1 min-h-0 grid-cols-[minmax(260px,1fr)_minmax(400px,2fr)_minmax(260px,1fr)]">
           <ChatPane role="architect" threadId={architectThreadId} colorAccent="#7C3AED" />
           <StagingPanel repo={selectedProject?.githubRepo || null} onCommit={handleCommit} />
           <ChatPane role="builder" threadId={builderThreadId} colorAccent="#2563EB" />
