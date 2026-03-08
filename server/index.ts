@@ -58,6 +58,12 @@ async function seedIfNeeded() {
         console.log(`[seed] Created project "${project.slug}"`);
       }
     }
+    // Fix: update scansblue githubRepo from "scanslab" to "scansblue"
+    await db
+      .update(projects)
+      .set({ githubRepo: "scansblue" })
+      .where(eq(projects.slug, "scansblue"));
+
     for (const provider of SEED_AI_PROVIDERS) {
       const existing = await db
         .select({ id: aiProviderConfigs.id })
