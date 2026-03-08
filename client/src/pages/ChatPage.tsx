@@ -123,10 +123,16 @@ function ChatPane({
   role,
   threadId,
   colorAccent,
+  onSendToOther,
+  pendingHandoff,
+  clearHandoff,
 }: {
   role: "architect" | "builder";
   threadId: number | null;
   colorAccent: string;
+  onSendToOther?: (content: string) => void;
+  pendingHandoff?: string | null;
+  clearHandoff?: () => void;
 }) {
   const { data: threadDetail } = useChatThread(threadId);
   const { send, streamingContent, isStreaming, error, abort } =
@@ -194,6 +200,14 @@ function ChatPane({
     }
   }
 
+  // Handle incoming handoff from other pane
+  useEffect(() => {
+    if (pendingHandoff && threadId && !isStreaming) {
+      setMessageInput(pendingHandoff);
+    }
+  }, [pendingHandoff, threadId, isStreaming]);
+
+  const otherLabel = role === "architect" ? "Builder" : "Architect";
   const Icon = role === "architect" ? Cpu : Wrench;
   const label = role === "architect" ? "Architect" : "Builder";
 
@@ -229,6 +243,42 @@ function ChatPane({
           </Badge>
         )}
       </div>
+
+      {/* Handoff banner */}
+      {pendingHandoff && (
+        <div className="mx-2 mt-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-md flex items-start gap-2">
+          <Send className="h-3.5 w-3.5 text-blue-500 mt-0.5 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-medium text-blue-700 mb-0.5">
+              From {otherLabel}
+            </p>
+            <p className="text-[10px] text-blue-600 line-clamp-3">
+              {pendingHandoff.slice(0, 200)}{pendingHandoff.length > 200 ? "..." : ""}
+            </p>
+          </div>
+          <div className="flex gap-1 flex-shrink-0">
+            <button
+              onClick={() => {
+                if (threadId && !isStreaming) {
+                  const content = pendingHandoff;
+                  clearHandoff?.();
+                  setMessageInput("");
+                  send(threadId, content);
+                }
+              }}
+              className="text-[10px] px-2 py-0.5 rounded bg-blue-500 text-white hover:bg-blue-600"
+            >
+              Send
+            </button>
+            <button
+              onClick={() => { clearHandoff?.(); setMessageInput(""); }}
+              className="text-[10px] px-1.5 py-0.5 rounded text-blue-400 hover:text-blue-600"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <ScrollArea className="flex-1 px-3 py-2">
@@ -271,9 +321,9 @@ function ChatPane({
                     {msg.content}
                   </p>
                 </div>
-                {/* Propose button for AI messages with code */}
+                {/* Action buttons for AI messages */}
                 {msg.role === "assistant" && (
-                  <div className="ml-4 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="ml-4 mt-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1.5">
                     <button
                       onClick={() => handlePropose(msg.content)}
                       className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-700"
@@ -281,6 +331,15 @@ function ChatPane({
                       <ArrowUpToLine className="h-2.5 w-2.5" />
                       {hasCode ? "Propose code" : "Send to staging"}
                     </button>
+                    {onSendToOther && (
+                      <button
+                        onClick={() => onSendToOther(msg.content)}
+                        className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-blue-50 hover:bg-blue-100 text-blue-500 hover:text-blue-700"
+                      >
+                        <Send className="h-2.5 w-2.5" />
+                        Send to {otherLabel}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -723,6 +782,8 @@ export default function ChatPage() {
   const [architectProvider, setArchitectProvider] = useState<string>("");
   const [builderProvider, setBuilderProvider] = useState<string>("");
   const [proposals, setProposals] = useState<ProposedFile[]>([]);
+  const [architectHandoff, setArchitectHandoff] = useState<string | null>(null);
+  const [builderHandoff, setBuilderHandoff] = useState<string | null>(null);
 
   const { data: projectData } = useProjects();
   const { data: providersData } = useChatProviders();
@@ -953,9 +1014,23 @@ export default function ChatPage() {
 
         {/* Three-Column Layout */}
         <div className="grid gap-3 flex-1 min-h-0 grid-cols-[minmax(260px,1fr)_minmax(400px,2fr)_minmax(260px,1fr)]">
-          <ChatPane role="architect" threadId={architectThreadId} colorAccent="#7C3AED" />
+          <ChatPane
+            role="architect"
+            threadId={architectThreadId}
+            colorAccent="#7C3AED"
+            onSendToOther={(content) => setBuilderHandoff(content)}
+            pendingHandoff={architectHandoff}
+            clearHandoff={() => setArchitectHandoff(null)}
+          />
           <StagingPanel repo={selectedProject?.githubRepo || null} onCommit={handleCommit} />
-          <ChatPane role="builder" threadId={builderThreadId} colorAccent="#2563EB" />
+          <ChatPane
+            role="builder"
+            threadId={builderThreadId}
+            colorAccent="#2563EB"
+            onSendToOther={(content) => setArchitectHandoff(content)}
+            pendingHandoff={builderHandoff}
+            clearHandoff={() => setBuilderHandoff(null)}
+          />
         </div>
       </div>
     </ProposalContext.Provider>
