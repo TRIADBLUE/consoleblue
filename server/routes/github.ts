@@ -1,9 +1,27 @@
 import { Router } from "express";
 import { githubService } from "../services/github.service";
 import { githubCacheMiddleware } from "../middleware/github-cache";
-import { requireApiKey } from "../middleware/api-key";
 import type { CacheService } from "../services/cache.service";
 import type { AuditService } from "../services/audit.service";
+import type { Request, Response, NextFunction } from "express";
+
+/**
+ * Accept either session auth (browser) or x-api-key header (external).
+ */
+function githubAuth(req: Request, res: Response, next: NextFunction) {
+  // API key auth
+  const apiKey = (req.headers["x-api-key"] || req.query.api_key) as string;
+  if (apiKey && apiKey === process.env.CONSOLE_API_KEY) {
+    return next();
+  }
+
+  // Session auth (browser)
+  if (req.session?.userId) {
+    return next();
+  }
+
+  return res.status(401).json({ error: "Unauthorized", message: "Authentication required" });
+}
 
 export function createGithubRoutes(
   cacheService: CacheService,
@@ -11,8 +29,8 @@ export function createGithubRoutes(
 ) {
   const router = Router();
 
-  // All GitHub routes require API key for external access
-  router.use(requireApiKey);
+  // All GitHub routes require either session auth or API key
+  router.use(githubAuth);
 
   // GET /api/github/repos
   router.get(
