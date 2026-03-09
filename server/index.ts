@@ -76,6 +76,16 @@ async function seedIfNeeded() {
       if (existing.length === 0) {
         await db.insert(aiProviderConfigs).values(provider);
         console.log(`[seed] Created AI provider "${provider.slug}"`);
+      } else {
+        // Sync display name, order, and available models for existing providers
+        await db
+          .update(aiProviderConfigs)
+          .set({
+            displayName: provider.displayName,
+            displayOrder: provider.displayOrder,
+            availableModels: provider.availableModels,
+          })
+          .where(eq(aiProviderConfigs.slug, provider.slug));
       }
     }
   } catch (err) {

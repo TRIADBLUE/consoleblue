@@ -3,14 +3,49 @@ import type { InsertProject } from "../../shared/validators";
 // AI Provider seed configs
 export const SEED_AI_PROVIDERS = [
   {
+    slug: "claude-code",
+    displayName: "Claude Code",
+    providerType: "claude-code" as const,
+    isEnabled: false,
+    modelTiers: { builder: "claude-code-opus" },
+    config: {},
+    displayOrder: 1,
+    availableModels: {
+      builder: [
+        { id: "claude-code-opus", name: "Claude Code Opus 4.6", tier: "flagship" },
+        { id: "claude-code-sonnet", name: "Claude Code Sonnet 4.6", tier: "fast" },
+      ],
+    },
+  },
+  {
+    slug: "kimi",
+    displayName: "Kimi Code",
+    providerType: "kimi" as const,
+    isEnabled: false,
+    modelTiers: { builder: "kimi-k2.5", architect: "kimi-k2.5" },
+    config: { baseUrl: "https://api.moonshot.cn/v1" },
+    displayOrder: 2,
+    availableModels: {
+      architect: [
+        { id: "kimi-k2.5", name: "Kimi K2.5", tier: "flagship" },
+        { id: "kimi-k2-thinking", name: "Kimi K2 Thinking", tier: "reasoning" },
+      ],
+      builder: [
+        { id: "kimi-k2.5", name: "Kimi K2.5", tier: "flagship" },
+        { id: "kimi-k2", name: "Kimi K2", tier: "fast" },
+        { id: "moonshot-v1-32k", name: "Moonshot v1 32K", tier: "legacy" },
+      ],
+    },
+  },
+  {
     slug: "anthropic",
-    displayName: "Anthropic",
+    displayName: "Claude Opus",
     providerType: "anthropic" as const,
     isEnabled: false,
     defaultForRole: "architect" as const,
     modelTiers: { builder: "claude-sonnet-4-6", architect: "claude-opus-4-6" },
     config: {},
-    displayOrder: 1,
+    displayOrder: 3,
     availableModels: {
       architect: [
         { id: "claude-opus-4-6", name: "Claude Opus 4.6", tier: "flagship" },
@@ -25,48 +60,32 @@ export const SEED_AI_PROVIDERS = [
     },
   },
   {
-    slug: "claude-code",
-    displayName: "Claude Code",
-    providerType: "claude-code" as const,
+    slug: "deepseek",
+    displayName: "DeepSeek R1",
+    providerType: "deepseek" as const,
     isEnabled: false,
-    modelTiers: { builder: "claude-code-opus" },
-    config: {},
-    displayOrder: 2,
-    availableModels: {
-      builder: [
-        { id: "claude-code-opus", name: "Claude Code (Opus 4.6)", tier: "flagship" },
-        { id: "claude-code-sonnet", name: "Claude Code (Sonnet 4.6)", tier: "fast" },
-      ],
-    },
-  },
-  {
-    slug: "kimi",
-    displayName: "Kimi (Moonshot)",
-    providerType: "kimi" as const,
-    isEnabled: false,
-    modelTiers: { builder: "kimi-k2.5", architect: "kimi-k2.5" },
-    config: { baseUrl: "https://api.moonshot.cn/v1" },
-    displayOrder: 3,
+    modelTiers: { builder: "deepseek-chat", architect: "deepseek-reasoner" },
+    config: { baseUrl: "https://api.deepseek.com/v1" },
+    displayOrder: 4,
     availableModels: {
       architect: [
-        { id: "kimi-k2.5", name: "Kimi K2.5", tier: "flagship" },
-        { id: "kimi-k2-thinking", name: "Kimi K2 Thinking", tier: "reasoning" },
+        { id: "deepseek-reasoner", name: "DeepSeek R1", tier: "reasoning" },
+        { id: "deepseek-chat", name: "DeepSeek V3", tier: "balanced" },
       ],
       builder: [
-        { id: "kimi-k2.5", name: "Kimi K2.5", tier: "flagship" },
-        { id: "kimi-k2", name: "Kimi K2", tier: "fast" },
-        { id: "moonshot-v1-32k", name: "Moonshot v1 32K", tier: "legacy" },
+        { id: "deepseek-chat", name: "DeepSeek V3", tier: "flagship" },
+        { id: "deepseek-reasoner", name: "DeepSeek R1", tier: "reasoning" },
       ],
     },
   },
   {
     slug: "google",
-    displayName: "Google (Gemini)",
+    displayName: "Gemini",
     providerType: "google" as const,
     isEnabled: false,
     modelTiers: { builder: "gemini-3-flash", architect: "gemini-3.1-pro" },
     config: {},
-    displayOrder: 4,
+    displayOrder: 5,
     availableModels: {
       architect: [
         { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro", tier: "flagship" },
@@ -80,27 +99,8 @@ export const SEED_AI_PROVIDERS = [
     },
   },
   {
-    slug: "deepseek",
-    displayName: "DeepSeek",
-    providerType: "deepseek" as const,
-    isEnabled: false,
-    modelTiers: { builder: "deepseek-chat", architect: "deepseek-reasoner" },
-    config: { baseUrl: "https://api.deepseek.com/v1" },
-    displayOrder: 5,
-    availableModels: {
-      architect: [
-        { id: "deepseek-reasoner", name: "DeepSeek R1", tier: "reasoning" },
-        { id: "deepseek-chat", name: "DeepSeek V3", tier: "balanced" },
-      ],
-      builder: [
-        { id: "deepseek-chat", name: "DeepSeek V3", tier: "flagship" },
-        { id: "deepseek-reasoner", name: "DeepSeek R1", tier: "reasoning" },
-      ],
-    },
-  },
-  {
     slug: "groq",
-    displayName: "Groq",
+    displayName: "Llama 3.3",
     providerType: "groq" as const,
     isEnabled: false,
     modelTiers: { builder: "llama-3.3-70b-versatile" },
@@ -116,7 +116,7 @@ export const SEED_AI_PROVIDERS = [
   },
   {
     slug: "openai",
-    displayName: "OpenAI",
+    displayName: "GPT-4o",
     providerType: "openai" as const,
     isEnabled: false,
     modelTiers: { builder: "gpt-4o", architect: "gpt-4o" },
@@ -136,7 +136,7 @@ export const SEED_AI_PROVIDERS = [
   },
   {
     slug: "replit",
-    displayName: "Replit Agent",
+    displayName: "Claude Sonnet 4.6 (Replit)",
     providerType: "replit" as const,
     isEnabled: false,
     defaultForRole: "builder" as const,
@@ -145,7 +145,7 @@ export const SEED_AI_PROVIDERS = [
     displayOrder: 8,
     availableModels: {
       builder: [
-        { id: "replit-agent", name: "Replit Agent (Claude Sonnet)", tier: "flagship" },
+        { id: "replit-agent", name: "Claude Sonnet 4.6 (Replit)", tier: "flagship" },
       ],
     },
   },
