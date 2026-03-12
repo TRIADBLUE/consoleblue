@@ -221,4 +221,32 @@ export class ChatService {
 
     return updated;
   }
+
+  async deleteMessage(messageId: number) {
+    const [deleted] = await this.db
+      .delete(chatMessages)
+      .where(eq(chatMessages.id, messageId))
+      .returning();
+
+    return deleted || null;
+  }
+
+  async deleteEmptyMessages(threadId: number) {
+    const messages = await this.db
+      .select()
+      .from(chatMessages)
+      .where(eq(chatMessages.threadId, threadId));
+
+    const emptyIds = messages
+      .filter((m) => !m.content || !m.content.trim())
+      .map((m) => m.id);
+
+    if (emptyIds.length === 0) return 0;
+
+    for (const id of emptyIds) {
+      await this.db.delete(chatMessages).where(eq(chatMessages.id, id));
+    }
+
+    return emptyIds.length;
+  }
 }

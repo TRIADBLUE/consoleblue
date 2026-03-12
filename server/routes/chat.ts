@@ -190,6 +190,31 @@ export function createChatRoutes(
     }
   });
 
+  // DELETE /api/chat/threads/:id/messages/:messageId
+  router.delete("/threads/:id/messages/:messageId", async (req, res, next) => {
+    try {
+      const messageId = parseInt(req.params.messageId, 10);
+      const deleted = await chatService.deleteMessage(messageId);
+      if (!deleted) {
+        return res.status(404).json({ error: "Not Found", message: "Message not found" });
+      }
+      res.json({ success: true });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // POST /api/chat/threads/:id/cleanup — remove empty messages
+  router.post("/threads/:id/cleanup", async (req, res, next) => {
+    try {
+      const threadId = parseInt(req.params.id, 10);
+      const count = await chatService.deleteEmptyMessages(threadId);
+      res.json({ success: true, removed: count });
+    } catch (err) {
+      next(err);
+    }
+  });
+
   // GET /api/chat/providers
   router.get("/providers", async (_req, res, next) => {
     try {

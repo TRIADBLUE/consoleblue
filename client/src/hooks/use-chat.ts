@@ -189,6 +189,40 @@ export function useSendMessage() {
   });
 }
 
+export function useDeleteChatMessage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      threadId,
+      messageId,
+    }: {
+      threadId: number;
+      messageId: number;
+    }) =>
+      apiClient.delete<{ success: boolean }>(
+        `/chat/threads/${threadId}/messages/${messageId}`,
+      ),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["chat-threads", variables.threadId],
+      });
+    },
+  });
+}
+
+export function useCleanupThread() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (threadId: number) =>
+      apiClient.post<{ success: boolean; removed: number }>(
+        `/chat/threads/${threadId}/cleanup`,
+      ),
+    onSuccess: (_data, _variables) => {
+      queryClient.invalidateQueries({ queryKey: ["chat-threads"] });
+    },
+  });
+}
+
 export function useChatProviders() {
   return useQuery({
     queryKey: ["chat-providers"],

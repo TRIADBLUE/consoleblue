@@ -3,7 +3,9 @@ import {
   useChatThreads,
   useChatThread,
   useCreateChatThread,
+  useArchiveChatThread,
   useStreamMessage,
+  useCleanupThread,
   useChatProviders,
   useUpdateChatProvider,
 } from "@/hooks/use-chat";
@@ -57,6 +59,8 @@ import {
   History,
   Upload,
   ShieldCheck,
+  RotateCcw,
+  MessageSquare,
 } from "lucide-react";
 import type { ChatThread, ChatMessage } from "@shared/types";
 
@@ -919,11 +923,19 @@ export default function ChatPage() {
   const [, setLocation] = useLocation();
   const searchString = useSearch();
 
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyRole, setHistoryRole] = useState<"architect" | "builder">("architect");
+  const [viewingThreadId, setViewingThreadId] = useState<number | null>(null);
+
   const { data: projectData } = useProjects();
   const { data: providersData } = useChatProviders();
   const { data: threadsData } = useChatThreads();
+  const { data: archivedThreadsData } = useChatThreads({ status: "archived" });
   const createThread = useCreateChatThread();
+  const archiveThread = useArchiveChatThread();
+  const cleanupThread = useCleanupThread();
   const updateProvider = useUpdateChatProvider();
+  const { data: viewingThreadDetail } = useChatThread(viewingThreadId);
 
   const allProviders = providersData?.providers || [];
   const enabledProviders = allProviders.filter((p) => p.isEnabled);
@@ -1071,6 +1083,62 @@ export default function ChatPage() {
     });
   }
 
+  // Start a fresh thread — archives the current one and creates new
+  async function handleNewThread(role: "architect" | "builder") {
+    if (!selectedProjectId) return;
+    const pid = parseInt(selectedProjectId, 10);
+    const project = projects.find((p) => p.id === pid);
+    if (!project) return;
+
+    const currentId = role === "architect" ? architectThreadId : builderThreadId;
+    const providerSlug = role === "architect" ? architectProvider : builderProvider;
+    const modelId = role === "architect" ? architectModel : builderModel;
+
+    // Archive existing thread
+    if (currentId) {
+      await archiveThread.mutateAsync(currentId);
+    }
+
+    // Create fresh thread
+    const newThread = await createThread.mutateAsync({
+      title: `${project.displayName} — ${role === "architect" ? "Architect" : "Builder"}`,
+      agentRole: role,
+      providerSlug: providerSlug || undefined,
+      modelId: modelId || undefined,
+      projectId: pid,
+    });
+
+    if (role === "architect") {
+      setArchitectThreadId(newThread.thread.id);
+    } else {
+      setBuilderThreadId(newThread.thread.id);
+    }
+  }
+
+  // Clean up empty messages from a thread
+  async function handleCleanup(threadId: number) {
+    await cleanupThread.mutateAsync(threadId);
+  }
+
+  // Open history for a specific role
+  function openHistory(role: "architect" | "builder") {
+    setHistoryRole(role);
+    setViewingThreadId(null);
+    setShowHistory(true);
+  }
+
+  // Restore an archived thread as active
+  // (We don't actually restore — we just let the user view it)
+
+  // Get archived threads for current project and role
+  function getArchivedThreads(role: "architect" | "builder") {
+    if (!selectedProjectId || !archivedThreadsData?.threads) return [];
+    const pid = parseInt(selectedProjectId, 10);
+    return archivedThreadsData.threads.filter(
+      (t: ChatThread) => t.projectId === pid && t.agentRole === role,
+    );
+  }
+
   // Handle provider change mid-session — creates a new linked thread
   async function handleSwapProvider(role: "architect" | "builder", newSlug: string, modelId?: string) {
     if (!selectedProjectId) return;
@@ -1184,6 +1252,33 @@ export default function ChatPage() {
                   <span className="hidden sm:inline">{createThread.isPending ? "Creating..." : "Launch"}</span>
                   <span className="sm:hidden">{createThread.isPending ? "..." : "Go"}</span>
                 </Button>
+              )}
+
+              {selectedProjectId && (architectThreadId || builderThreadId) && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-gray-400 hover:text-white hover:bg-gray-800"
+                    onClick={() => openHistory("architect")}
+                    title="Thread History"
+                  >
+                    <History className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-gray-400 hover:text-white hover:bg-gray-800"
+                    onClick={() => {
+                      handleNewThread("architect");
+                      handleNewThread("builder");
+                    }}
+                    disabled={archiveThread.isPending || createThread.isPending}
+                    title="New Session (archives current threads)"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                </>
               )}
 
               <Dialog>
@@ -1424,6 +1519,118 @@ export default function ChatPage() {
             />
           )}
         </div>
+        {/* History Dialog */}
+        <Dialog open={showHistory} onOpenChange={setShowHistory}>
+          <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <History className="h-4 w-4" />
+                Thread History
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex gap-2 mb-3">
+              <button
+                onClick={() => { setHistoryRole("architect"); setViewingThreadId(null); }}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                  historyRole === "architect"
+                    ? "bg-purple-100 text-purple-700"
+                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                }`}
+              >
+                <Cpu className="h-3 w-3 inline mr-1" />
+                Architect
+              </button>
+              <button
+                onClick={() => { setHistoryRole("builder"); setViewingThreadId(null); }}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                  historyRole === "builder"
+                    ? "bg-blue-100 text-blue-700"
+                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                }`}
+              >
+                <Wrench className="h-3 w-3 inline mr-1" />
+                Builder
+              </button>
+            </div>
+
+            <ScrollArea className="flex-1 min-h-0">
+              {viewingThreadId && viewingThreadDetail ? (
+                <div>
+                  <button
+                    onClick={() => setViewingThreadId(null)}
+                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 mb-3"
+                  >
+                    <ArrowLeft className="h-3 w-3" />
+                    Back to list
+                  </button>
+                  <h3 className="text-sm font-medium mb-2">{viewingThreadDetail.thread.title}</h3>
+                  <div className="space-y-2">
+                    {viewingThreadDetail.messages.map((msg: ChatMessage) => (
+                      <div
+                        key={msg.id}
+                        className={`px-3 py-2 rounded-md text-xs ${
+                          msg.role === "user"
+                            ? "bg-gray-100 text-gray-800"
+                            : msg.role === "assistant"
+                            ? "bg-blue-50 text-gray-800"
+                            : "bg-yellow-50 text-gray-600"
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 mb-1">
+                          {msg.role === "user" ? (
+                            <User className="h-3 w-3 text-gray-500" />
+                          ) : (
+                            <Bot className="h-3 w-3 text-blue-500" />
+                          )}
+                          <span className="font-medium capitalize">{msg.role}</span>
+                          <span className="text-gray-400 ml-auto">
+                            {new Date(msg.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="whitespace-pre-wrap break-words line-clamp-6">
+                          {msg.content || "(empty message)"}
+                        </p>
+                      </div>
+                    ))}
+                    {viewingThreadDetail.messages.length === 0 && (
+                      <p className="text-xs text-gray-400 text-center py-4">No messages in this thread.</p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {getArchivedThreads(historyRole).map((thread: ChatThread) => (
+                    <button
+                      key={thread.id}
+                      onClick={() => setViewingThreadId(thread.id)}
+                      className="w-full text-left px-3 py-2.5 rounded-md border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-gray-800 truncate">
+                          {thread.title}
+                        </span>
+                        <span className="text-[10px] text-gray-400 ml-2 flex-shrink-0">
+                          {new Date(thread.updatedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {thread.providerSlug && (
+                        <Badge variant="outline" className="text-[9px] mt-1 px-1.5 py-0">
+                          {thread.providerSlug}
+                        </Badge>
+                      )}
+                    </button>
+                  ))}
+                  {getArchivedThreads(historyRole).length === 0 && (
+                    <p className="text-xs text-gray-400 text-center py-8">
+                      <MessageSquare className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                      No archived threads yet.
+                    </p>
+                  )}
+                </div>
+              )}
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
       </div>
     </ProposalContext.Provider>
   );
