@@ -718,3 +718,56 @@ export const linkChecksRelations = relations(linkChecks, ({ one }) => ({
     references: [projects.id],
   }),
 }));
+
+// ── Online Global Assets (OGA) ───────────────────────
+
+export const ogaSiteStatusEnum = pgEnum("oga_site_status", [
+  "active",
+  "disabled",
+  "pending",
+]);
+
+export const ogaSites = pgTable("oga_sites", {
+  id: serial("id").primaryKey(),
+  domain: varchar("domain", { length: 500 }).notNull().unique(),
+  displayName: varchar("display_name", { length: 200 }).notNull(),
+  apiKey: text("api_key").notNull().unique(),
+  status: ogaSiteStatusEnum("status").default("active").notNull(),
+  emancipated: boolean("emancipated").default(false).notNull(),
+  parentDomain: varchar("parent_domain", { length: 500 }),
+  allowedOrigins: jsonb("allowed_origins").default([]),
+  lastFetchedAt: timestamp("last_fetched_at"),
+  fetchCount: integer("fetch_count").default(0).notNull(),
+  metadata: jsonb("metadata").default({}),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const ogaAssets = pgTable(
+  "oga_assets",
+  {
+    id: serial("id").primaryKey(),
+    siteId: integer("site_id")
+      .references(() => ogaSites.id, { onDelete: "cascade" })
+      .notNull(),
+    assetType: varchar("asset_type", { length: 50 }).notNull(),
+    value: text("value").notNull(),
+    mimeType: varchar("mime_type", { length: 100 }),
+    enabled: boolean("enabled").default(true).notNull(),
+    displayOrder: integer("display_order").default(0).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("oga_assets_site_type_idx").on(table.siteId, table.assetType)],
+);
+
+export const ogaSitesRelations = relations(ogaSites, ({ many }) => ({
+  assets: many(ogaAssets),
+}));
+
+export const ogaAssetsRelations = relations(ogaAssets, ({ one }) => ({
+  site: one(ogaSites, {
+    fields: [ogaAssets.siteId],
+    references: [ogaSites.id],
+  }),
+}));

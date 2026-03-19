@@ -504,6 +504,69 @@ export interface GithubRoutesResponse {
   cachedAt?: string;
 }
 
+// ── Online Global Assets (OGA) Types ──────────────────
+
+export type OgaSiteStatus = "active" | "disabled" | "pending";
+
+export interface OgaSite {
+  id: number;
+  domain: string;
+  displayName: string;
+  apiKey: string;
+  status: OgaSiteStatus;
+  emancipated: boolean;
+  parentDomain: string | null;
+  allowedOrigins: string[];
+  lastFetchedAt: string | null;
+  fetchCount: number;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OgaAsset {
+  id: number;
+  siteId: number;
+  assetType: string;
+  value: string;
+  mimeType: string | null;
+  enabled: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OgaSiteListResponse {
+  sites: OgaSite[];
+  total: number;
+}
+
+export interface OgaSiteDetailResponse {
+  site: OgaSite;
+  assets: OgaAsset[];
+}
+
+export interface OgaConfigResponse {
+  domain: string;
+  siteName: string;
+  assets: {
+    favicon16?: string;
+    favicon32?: string;
+    faviconIco?: string;
+    appleTouchIcon?: string;
+    ogImage?: string;
+    themeColor?: string;
+    manifestIcon192?: string;
+    manifestIcon512?: string;
+    headerLogo?: string;
+    headerLogoDark?: string;
+    loginLogo?: string;
+    loginBackground?: string;
+    loginAccentColor?: string;
+  };
+  updatedAt: string;
+}
+
 export interface GithubSearchResponse {
   repo: string;
   query: string;

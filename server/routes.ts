@@ -24,6 +24,7 @@ import { createAnalyticsRoutes } from "./routes/analytics";
 import { createAssetRoutes } from "./routes/assets";
 import { createLinkMonitorRoutes } from "./routes/link-monitor";
 import { createTeamRoutes } from "./routes/team";
+import { createOgaRoutes } from "./routes/oga";
 import { errorHandler } from "./middleware/error-handler";
 
 export function registerRoutes(app: Express, db: NodePgDatabase) {
@@ -118,6 +119,9 @@ export function registerRoutes(app: Express, db: NodePgDatabase) {
 
   // Team
   app.use("/api/team", createTeamRoutes(db, auditService));
+
+  // Online Global Assets (OGA)
+  app.use("/api/oga", createOgaRoutes(db, auditService));
 
   // ── Error Handler ──────────────────────────────────
   app.use(errorHandler);

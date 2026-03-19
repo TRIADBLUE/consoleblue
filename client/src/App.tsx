@@ -17,6 +17,7 @@ import AnalyticsPage from "@/pages/AnalyticsPage";
 import AssetManagerPage from "@/pages/AssetManagerPage";
 import LinkMonitorPage from "@/pages/LinkMonitorPage";
 import TeamPage from "@/pages/TeamPage";
+import OgaPage from "@/pages/OgaPage";
 import { NewProjectDocsAlert } from "@/components/docs/NewProjectDocsAlert";
 
 const queryClient = new QueryClient({
@@ -117,6 +118,9 @@ function AppRouter() {
       </Route>
       <Route path="/audit">
         <ProtectedRoute component={AuditLogPage} />
+      </Route>
+      <Route path="/oga">
+        <ProtectedRoute component={OgaPage} />
       </Route>
       <Route path="/settings">
         <ProtectedRoute component={SettingsPage} />

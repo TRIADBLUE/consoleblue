@@ -331,6 +331,33 @@ export const linkCheckQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).optional().default(0),
 });
 
+// ── OGA Validators ──────────────────────────────────
+
+export const insertOgaSiteSchema = z.object({
+  domain: z.string().min(1).max(500),
+  displayName: z.string().min(1).max(200),
+  status: z.enum(["active", "disabled", "pending"]).optional(),
+  emancipated: z.boolean().optional(),
+  parentDomain: z.string().max(500).optional().nullable(),
+  allowedOrigins: z.array(z.string()).optional(),
+  metadata: z.record(z.unknown()).optional(),
+});
+
+export const updateOgaSiteSchema = insertOgaSiteSchema.partial();
+
+export const upsertOgaAssetsSchema = z.object({
+  assets: z
+    .array(
+      z.object({
+        assetType: z.string().min(1).max(50),
+        value: z.string().min(1),
+        mimeType: z.string().max(100).optional().nullable(),
+        enabled: z.boolean().optional(),
+      }),
+    )
+    .min(1),
+});
+
 // ── Export Types ────────────────────────────────────────
 
 export type InsertProject = z.infer<typeof insertProjectSchema>;
@@ -357,3 +384,6 @@ export type InsertSiteConnection = z.infer<typeof insertSiteConnectionSchema>;
 export type CreateChatThread = z.infer<typeof createChatThreadSchema>;
 export type SendChatMessage = z.infer<typeof sendChatMessageSchema>;
 export type UpdateProviderConfig = z.infer<typeof updateProviderConfigSchema>;
+export type InsertOgaSite = z.infer<typeof insertOgaSiteSchema>;
+export type UpdateOgaSite = z.infer<typeof updateOgaSiteSchema>;
+export type UpsertOgaAssets = z.infer<typeof upsertOgaAssetsSchema>;

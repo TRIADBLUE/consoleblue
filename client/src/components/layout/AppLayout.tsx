@@ -20,6 +20,7 @@ const NAV_ITEMS = [
   { label: "Analytics", href: "/analytics" },
   { label: "Assets", href: "/assets" },
   { label: "Links", href: "/link-monitor" },
+  { label: "OGA", href: "/oga" },
   { label: "Team", href: "/team" },
   { label: "Activity", href: "/audit" },
   { label: "Settings", href: "/settings" },
