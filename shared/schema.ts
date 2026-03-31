@@ -9,6 +9,7 @@ import {
   jsonb,
   pgEnum,
   uniqueIndex,
+  customType,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -521,6 +522,20 @@ export const assetCategoryEnum = pgEnum("asset_category", [
   "document",
 ]);
 
+const bytea = customType<{ data: Buffer }>({
+  dataType() {
+    return "bytea";
+  },
+  toDriver(value: Buffer) {
+    return value;
+  },
+  fromDriver(value: unknown) {
+    if (Buffer.isBuffer(value)) return value;
+    if (typeof value === "string") return Buffer.from(value, "hex");
+    return Buffer.from(value as any);
+  },
+});
+
 export const assets = pgTable("assets", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").references(() => projects.id, {
@@ -529,7 +544,8 @@ export const assets = pgTable("assets", {
   filename: varchar("filename", { length: 500 }).notNull(),
   mimeType: varchar("mime_type", { length: 100 }).notNull(),
   sizeBytes: integer("size_bytes").notNull(),
-  storagePath: text("storage_path").notNull(),
+  storagePath: text("storage_path"),
+  data: bytea("data"),
   category: assetCategoryEnum("category").default("document").notNull(),
   uploadedBy: integer("uploaded_by").references(() => adminUsers.id, {
     onDelete: "set null",

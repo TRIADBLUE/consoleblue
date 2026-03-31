@@ -3,7 +3,6 @@ import { eq, desc, and, SQL } from "drizzle-orm";
 import { assets } from "../../shared/schema";
 import type { AuditService } from "../services/audit.service";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
-import path from "path";
 import fs from "fs";
 
 export function createAssetRoutes(
@@ -11,12 +10,6 @@ export function createAssetRoutes(
   auditService: AuditService,
 ) {
   const router = Router();
-
-  // Ensure uploads directory exists
-  const uploadsDir = path.resolve(process.cwd(), "uploads");
-  if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-  }
 
   // GET /api/assets
   router.get("/", async (req, res, next) => {
@@ -41,7 +34,18 @@ export function createAssetRoutes(
         : 0;
 
       const rows = await db
-        .select()
+        .select({
+          id: assets.id,
+          projectId: assets.projectId,
+          filename: assets.filename,
+          mimeType: assets.mimeType,
+          sizeBytes: assets.sizeBytes,
+          storagePath: assets.storagePath,
+          category: assets.category,
+          uploadedBy: assets.uploadedBy,
+          metadata: assets.metadata,
+          createdAt: assets.createdAt,
+        })
         .from(assets)
         .where(where)
         .orderBy(desc(assets.createdAt))
@@ -66,7 +70,6 @@ export function createAssetRoutes(
       const projectId = req.headers["x-project-id"]
         ? parseInt(req.headers["x-project-id"] as string, 10)
         : null;
-      // Auto-detect category from mime type if not specified
       const headerCategory = req.headers["x-category"] as string | undefined;
       const category = headerCategory || (
         mimeType.startsWith("image/") ? "screenshot" : "document"
@@ -87,13 +90,8 @@ export function createAssetRoutes(
       const safeName = filename
         .replace(/[^a-zA-Z0-9._-]/g, "-")
         .toLowerCase();
-      const storagePath = path.join(
-        uploadsDir,
-        `${Date.now()}-${safeName}`,
-      );
 
-      fs.writeFileSync(storagePath, buffer);
-
+      // Store file data directly in the database
       const [asset] = await db
         .insert(assets)
         .values({
@@ -101,10 +99,20 @@ export function createAssetRoutes(
           filename: safeName,
           mimeType,
           sizeBytes: buffer.length,
-          storagePath,
+          data: buffer,
           category: category as any,
         })
-        .returning();
+        .returning({
+          id: assets.id,
+          projectId: assets.projectId,
+          filename: assets.filename,
+          mimeType: assets.mimeType,
+          sizeBytes: assets.sizeBytes,
+          category: assets.category,
+          uploadedBy: assets.uploadedBy,
+          metadata: assets.metadata,
+          createdAt: assets.createdAt,
+        });
 
       await auditService.log({
         action: "create",
@@ -133,15 +141,25 @@ export function createAssetRoutes(
         return res.status(404).json({ error: "Not Found" });
       }
 
-      if (!fs.existsSync(asset.storagePath)) {
-        return res.status(404).json({ error: "File not found on disk" });
-      }
-
       res.setHeader("Content-Type", asset.mimeType);
       res.setHeader("Content-Disposition", `inline; filename="${asset.filename}"`);
-      res.setHeader("Cache-Control", "public, max-age=86400");
-      const stream = fs.createReadStream(asset.storagePath);
-      stream.pipe(res);
+      res.setHeader("Cache-Control", "public, max-age=3600");
+
+      // Serve from database if data exists
+      if (asset.data) {
+        res.setHeader("Content-Length", asset.data.length);
+        return res.send(asset.data);
+      }
+
+      // Fallback: serve from filesystem (legacy records)
+      if (asset.storagePath && fs.existsSync(asset.storagePath)) {
+        const stat = fs.statSync(asset.storagePath);
+        res.setHeader("Last-Modified", stat.mtime.toUTCString());
+        const stream = fs.createReadStream(asset.storagePath);
+        return stream.pipe(res);
+      }
+
+      return res.status(404).json({ error: "File data not available" });
     } catch (err) {
       next(err);
     }
@@ -152,7 +170,14 @@ export function createAssetRoutes(
     try {
       const id = parseInt(req.params.id, 10);
       const [existing] = await db
-        .select()
+        .select({
+          id: assets.id,
+          filename: assets.filename,
+          mimeType: assets.mimeType,
+          sizeBytes: assets.sizeBytes,
+          storagePath: assets.storagePath,
+          category: assets.category,
+        })
         .from(assets)
         .where(eq(assets.id, id))
         .limit(1);
@@ -163,8 +188,8 @@ export function createAssetRoutes(
           .json({ error: "Not Found", message: "Asset not found" });
       }
 
-      // Delete file from disk
-      if (fs.existsSync(existing.storagePath)) {
+      // Delete file from disk if it exists (legacy cleanup)
+      if (existing.storagePath && fs.existsSync(existing.storagePath)) {
         fs.unlinkSync(existing.storagePath);
       }
 

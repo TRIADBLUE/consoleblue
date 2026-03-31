@@ -41,6 +41,7 @@ import {
   Check,
   AlertTriangle,
   Info,
+  Download,
 } from "lucide-react";
 import type { OgaSite, OgaAsset } from "@shared/types";
 
@@ -51,6 +52,7 @@ interface AssetTypeConfig {
   accept?: string;
   isColor?: boolean;
   isText?: boolean;
+  isColorOrImage?: boolean;
 }
 
 const ASSET_GROUPS: {
@@ -96,7 +98,7 @@ const ASSET_GROUPS: {
     icon: LogIn,
     types: [
       { key: "login-logo", label: "Login Logo", info: "Logo shown on the login/auth page. Usually the full mark, displayed prominently.", accept: "image/png,image/svg+xml" },
-      { key: "login-background", label: "Login Background", info: "Background image for login pages. Sets the visual tone for the auth experience.", accept: "image/png,image/jpeg,image/webp" },
+      { key: "login-background", label: "Login Background", info: "Background for login pages. Use a solid color or upload an image. Sets the visual tone for the auth experience.", isColorOrImage: true, accept: "image/png,image/jpeg,image/webp" },
       { key: "login-accent-color", label: "Login Accent Color", info: "Primary brand color for login UI. Used on buttons, links, and highlights.", isColor: true },
     ],
   },
@@ -172,6 +174,7 @@ function AssetSlot({
   accept,
   isColor,
   isText,
+  isColorOrImage,
 }: {
   siteId: number;
   assetType: string;
@@ -181,23 +184,30 @@ function AssetSlot({
   accept?: string;
   isColor?: boolean;
   isText?: boolean;
+  isColorOrImage?: boolean;
 }) {
   const upsertAssets = useUpsertOgaAssets();
   const deleteAsset = useDeleteOgaAsset();
   const uploadAsset = useUploadAsset();
   const [textValue, setTextValue] = useState(currentAsset?.value || "");
+  const [viewOpen, setViewOpen] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  // For color-or-image: detect current mode from stored value
+  const currentValueIsColor = currentAsset?.value?.startsWith("#") ?? true;
+  const [bgMode, setBgMode] = useState<"color" | "image">(
+    currentAsset?.value && !currentValueIsColor ? "image" : "color"
+  );
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Upload to assets system first
     const result = await uploadAsset.mutateAsync({
       file,
       category: "icon",
     });
 
-    // Then link to OGA
     const assetUrl = `${window.location.origin}/api/assets/file/${result.asset.id}`;
     await upsertAssets.mutateAsync({
       siteId,
@@ -206,6 +216,7 @@ function AssetSlot({
       },
     });
 
+    setImgError(false);
     e.target.value = "";
   }
 
@@ -231,8 +242,14 @@ function AssetSlot({
   function handleDelete() {
     if (currentAsset) {
       deleteAsset.mutate({ siteId, assetId: currentAsset.id });
+      setImgError(false);
     }
   }
+
+  const isImageValue = currentAsset?.value && (
+    currentAsset.mimeType?.startsWith("image") ||
+    currentAsset.value.includes("/api/assets/file/")
+  );
 
   if (isColor) {
     return (
@@ -277,6 +294,97 @@ function AssetSlot({
     );
   }
 
+  // Color-or-image mode (login-background)
+  if (isColorOrImage) {
+    return (
+      <div className="py-2 space-y-2">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-gray-700 flex items-center gap-1.5">{label} <InfoTip text={info} /></p>
+          </div>
+          <div className="flex items-center gap-1 bg-gray-100 rounded p-0.5">
+            <button
+              onClick={() => setBgMode("color")}
+              className={`text-[10px] px-2 py-0.5 rounded transition-colors ${bgMode === "color" ? "bg-white shadow-sm text-gray-800" : "text-gray-500"}`}
+            >
+              Color
+            </button>
+            <button
+              onClick={() => setBgMode("image")}
+              className={`text-[10px] px-2 py-0.5 rounded transition-colors ${bgMode === "image" ? "bg-white shadow-sm text-gray-800" : "text-gray-500"}`}
+            >
+              Image
+            </button>
+          </div>
+        </div>
+        {bgMode === "color" ? (
+          <div className="flex items-center gap-2 pl-0">
+            <input
+              type="color"
+              value={currentValueIsColor ? (currentAsset?.value || "#000000") : "#000000"}
+              onChange={(e) => handleColorChange(e.target.value)}
+              className="w-8 h-8 rounded border border-gray-300 cursor-pointer"
+            />
+            {currentAsset?.value?.startsWith("#") && (
+              <span className="text-[10px] font-mono text-gray-500">
+                {currentAsset.value}
+              </span>
+            )}
+            {currentAsset && (
+              <button onClick={handleDelete} className="text-gray-400 hover:text-red-500 transition-colors">
+                <Trash2 className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            {currentAsset?.value && !currentValueIsColor && !imgError && (
+              <>
+                <button onClick={() => setViewOpen(true)} className="cursor-pointer">
+                  <img
+                    src={currentAsset.value}
+                    alt={label}
+                    className="h-12 w-12 object-contain rounded border border-gray-200 bg-gray-50 hover:border-gray-400 transition-colors"
+                    onError={() => setImgError(true)}
+                  />
+                </button>
+                <a
+                  href={currentAsset.value}
+                  download={label}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  title="Download"
+                >
+                  <Download className="h-3 w-3" />
+                </a>
+                <Dialog open={viewOpen} onOpenChange={setViewOpen}>
+                  <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                      <DialogTitle className="text-sm">{label}</DialogTitle>
+                    </DialogHeader>
+                    <img src={currentAsset.value} alt={label} className="w-full object-contain rounded" />
+                    <p className="text-[10px] text-gray-400 truncate">{currentAsset.value}</p>
+                  </DialogContent>
+                </Dialog>
+              </>
+            )}
+            <label className="cursor-pointer">
+              <input type="file" accept={accept} onChange={handleFileUpload} className="hidden" />
+              <span className="text-[10px] px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors">
+                {currentAsset && !currentValueIsColor ? "Replace" : "Upload"}
+              </span>
+            </label>
+            {currentAsset && (
+              <button onClick={handleDelete} className="text-gray-400 hover:text-red-500 transition-colors">
+                <Trash2 className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Standard file upload slot
   return (
     <div className="flex items-center gap-3 py-2">
       <div className="flex-1 min-w-0">
@@ -286,12 +394,34 @@ function AssetSlot({
         )}
       </div>
       <div className="flex items-center gap-1.5">
-        {currentAsset?.value && currentAsset.mimeType?.startsWith("image") && (
-          <img
-            src={currentAsset.value}
-            alt={label}
-            className="h-8 w-8 object-contain rounded border border-gray-200 bg-gray-50"
-          />
+        {isImageValue && !imgError && (
+          <>
+            <button onClick={() => setViewOpen(true)} className="cursor-pointer">
+              <img
+                src={currentAsset.value}
+                alt={label}
+                className="h-12 w-12 object-contain rounded border border-gray-200 bg-gray-50 hover:border-gray-400 transition-colors"
+                onError={() => setImgError(true)}
+              />
+            </button>
+            <a
+              href={currentAsset.value}
+              download={label}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+              title="Download"
+            >
+              <Download className="h-3 w-3" />
+            </a>
+            <Dialog open={viewOpen} onOpenChange={setViewOpen}>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle className="text-sm">{label}</DialogTitle>
+                </DialogHeader>
+                <img src={currentAsset.value} alt={label} className="w-full object-contain rounded" />
+                <p className="text-[10px] text-gray-400 truncate">{currentAsset.value}</p>
+              </DialogContent>
+            </Dialog>
+          </>
         )}
         <label className="cursor-pointer">
           <input
@@ -481,12 +611,15 @@ function SiteDetail({
             <code className="flex-1 text-[10px] bg-white px-2 py-1.5 rounded border border-gray-200 font-mono truncate">
               GET {apiEndpoint}
             </code>
-            <CopyButton text={apiEndpoint} />
+            <CopyButton text={`curl "${apiEndpoint}"`} />
           </div>
         </div>
 
         <div className="flex items-center gap-4 text-[10px] text-gray-400 pt-1">
-          <span>Fetched {site.fetchCount} times</span>
+          <span className="flex items-center gap-1">
+            Fetched {site.fetchCount} times
+            <InfoTip text="Every time a visitor loads a page on this site, the OGA embed script requests the latest brand assets from ConsoleBlue. This counter tracks how many page loads have used OGA." />
+          </span>
           {site.lastFetchedAt && (
             <span>
               Last: {new Date(site.lastFetchedAt).toLocaleString()}
@@ -516,6 +649,7 @@ function SiteDetail({
                 accept={type.accept}
                 isColor={type.isColor}
                 isText={type.isText}
+                isColorOrImage={type.isColorOrImage}
               />
             ))}
           </div>
