@@ -110,6 +110,21 @@ export function createDocPushRoutes(
           commitMessage?: string;
         };
 
+        // Guard: Console.Blue's own CLAUDE.md is hand-edited and must not be
+        // overwritten by the Doc Planner assembly. Every other project can push
+        // normally. If you need to push Console.Blue docs to GitHub, use a
+        // different targetPath (e.g., docs/assembled-docs.md).
+        const normalizedPath = targetPath.replace(/^\/+/, "").toUpperCase();
+        if (
+          project.slug === "consoleblue" &&
+          normalizedPath === "CLAUDE.MD"
+        ) {
+          return res.status(409).json({
+            error:
+              "Console.Blue's CLAUDE.md is hand-edited. Doc Planner is blocked from overwriting it. Use a different targetPath (e.g., docs/assembled-docs.md) or edit CLAUDE.md directly in the repo.",
+          });
+        }
+
         const { assembledContent } = await assembleContent(project.id);
 
         const message =
