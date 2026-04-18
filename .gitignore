@@ -4,3 +4,15 @@ dist/
 *.log
 .DS_Store
 attached_assets/
+
+# Non-repo items in the workspace (not part of the consoleblue codebase)
+businessblueprint/
+github-proxy/
+icons-for-replit/
+assets/
+claude/
+claude2/
+prompts/
+CLAUDE.md.outer-backup
+Markdown Generator.zip
+sitemap and planner sample.png

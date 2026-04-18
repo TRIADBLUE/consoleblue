@@ -151,8 +151,10 @@ export function createOgaRoutes(
     if(!cfg||!cfg.assets)return;
     var h=document.head;
     var a=cfg.assets;
+    var sn=a.siteName||cfg.siteName;
+    var tile=a.logoImage192px||a.logoImage;
 
-    // Remove existing favicons
+    // Remove existing favicons (OGA owns them)
     var old=h.querySelectorAll('link[rel="icon"],link[rel="shortcut icon"],link[rel="apple-touch-icon"]');
     for(var i=0;i<old.length;i++)old[i].parentNode.removeChild(old[i]);
 
@@ -177,8 +179,16 @@ export function createOgaRoutes(
     addLink("apple-touch-icon",a.logoImage180px,"180x180");
     setMeta("theme-color",a.themeColor);
     setMeta("og:image",a.ogImage,true);
-    if(a.siteName)setMeta("og:site_name",a.siteName,true);
-    if(cfg.siteName)setMeta("og:site_name",cfg.siteName,true);
+    setMeta("twitter:image",a.ogImage,true);
+    setMeta("msapplication-TileColor",a.themeColor);
+    setMeta("msapplication-TileImage",tile);
+    if(sn){
+      document.title=sn;
+      setMeta("title",sn);
+      setMeta("og:site_name",sn,true);
+      setMeta("og:title",sn,true);
+      setMeta("twitter:title",sn,true);
+    }
   }
 
   try{
