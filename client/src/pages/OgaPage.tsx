@@ -53,6 +53,7 @@ interface AssetTypeConfig {
   isColor?: boolean;
   isText?: boolean;
   isColorOrImage?: boolean;
+  onlyForDomain?: string;
 }
 
 const ASSET_GROUPS: {
@@ -68,7 +69,9 @@ const ASSET_GROUPS: {
       { key: "logo-image", label: "Logo Image (1024×1024)", info: "Master square icon — symbol only, no text. 1024×1024 PNG, transparent background. Source file for every favicon/avatar size. CDN: logo-image.png", accept: "image/png,image/svg+xml" },
       { key: "logo-text", label: "Logo Text (1200×240)", info: "Wordmark only — the styled brand name with NO icon. 1200×240 PNG, transparent. CDN: logo-text.png", accept: "image/png,image/svg+xml" },
       { key: "ai-assistant-image", label: "AI Assistant / Coach (1024×1024)", info: "Image of the brand's AI support character — the Assistant / Coach / Instructor shown alongside the brand. Each site has its own (e.g. Coach Blue for bb.io). 1024×1024 PNG, transparent background. CDN: ai-assistant.png", accept: "image/png,image/svg+xml" },
+      { key: "ai-assistant-name", label: "AI Assistant / Coach Name", info: "The display name of this brand's AI support character (e.g. Coach Blue, Coach Green, Coach Gray, Coach Squared). Plain text, no image.", isText: true },
       { key: "brand-url", label: "Brand URL", info: "The brand URL as plain text (e.g. businessblueprint.io). No image.", isText: true },
+      { key: "ecosystem-lockup", label: "Ecosystem Lockup (1200×240) — TRIADBLUE only", info: "The multi-brand TRIADBLUE ecosystem lockup. Only used for triadblue.com. 1200×240 PNG, transparent. CDN: ecosystem-lockup.png", accept: "image/png,image/svg+xml", onlyForDomain: "triadblue.com" },
     ],
   },
   {
@@ -640,7 +643,9 @@ function SiteDetail({
             </h3>
           </div>
           <div className="px-4 divide-y divide-gray-100">
-            {group.types.map((type) => (
+            {group.types
+              .filter((type) => !type.onlyForDomain || type.onlyForDomain === site.domain)
+              .map((type) => (
               <AssetSlot
                 key={type.key}
                 siteId={site.id}
