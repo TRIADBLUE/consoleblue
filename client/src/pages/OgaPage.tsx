@@ -67,6 +67,7 @@ const ASSET_GROUPS: {
       { key: "logo-full-mark", label: "Logo Full Mark (1200×240)", info: "Official horizontal lockup — icon + wordmark together. 1200×240 PNG, transparent background. Master brand asset. CDN: logo-lockup.png", accept: "image/png,image/svg+xml" },
       { key: "logo-image", label: "Logo Image (1024×1024)", info: "Master square icon — symbol only, no text. 1024×1024 PNG, transparent background. Source file for every favicon/avatar size. CDN: logo-image.png", accept: "image/png,image/svg+xml" },
       { key: "logo-text", label: "Logo Text (1200×240)", info: "Wordmark only — the styled brand name with NO icon. 1200×240 PNG, transparent. CDN: logo-text.png", accept: "image/png,image/svg+xml" },
+      { key: "ai-assistant-image", label: "AI Assistant / Coach (1024×1024)", info: "Image of the brand's AI support character — the Assistant / Coach / Instructor shown alongside the brand. Each site has its own (e.g. Coach Blue for bb.io). 1024×1024 PNG, transparent background. CDN: ai-assistant.png", accept: "image/png,image/svg+xml" },
       { key: "brand-url", label: "Brand URL", info: "The brand URL as plain text (e.g. businessblueprint.io). No image.", isText: true },
     ],
   },
