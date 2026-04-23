@@ -40,7 +40,6 @@ async function request<T>(
   const res = await fetch(url, {
     method,
     headers,
-    credentials: "include",
     body: options?.body ? JSON.stringify(options.body) : undefined,
   });
 
